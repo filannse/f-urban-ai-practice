@@ -1,6 +1,8 @@
 SOURCE_DIR = my_package
 TEST_DIR = tests
 
+.PHONY: lint format venv install install-dev install-docs install-test build clean test test-cov tests tests-cov
+
 # code formatting and linting
 
 lint:
@@ -24,8 +26,8 @@ install-dev: # установка зависимостей для разрабо
 install-docs: # установка зависимостей для тестирования
 	pip install -e '.[docs]'
 
-install-test: # установка зависимостей для сборки документации
-	pip install -e '.[test]'
+install-test: # установка зависимостей для тестирования
+	pip install -e '.[tests]'
 
 # building the package
 
@@ -36,6 +38,10 @@ clean:
 	rm -rf ./build ./dist ./${SOURCE_DIR}.egg-info
 
 # testing
+
+test: tests # псевдоним для make tests
+
+test-cov: tests-cov # псевдоним для make tests-cov
 
 tests: # тестирование
 	pytest ${TEST_DIR}
