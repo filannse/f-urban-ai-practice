@@ -17,6 +17,7 @@ htmlcov/
 .nox/
 .coverage
 .cache
+cache/
 .pytest_cache/
 
 # Django stuff
