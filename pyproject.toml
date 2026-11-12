@@ -6,12 +6,12 @@ build-backend = "setuptools.build_meta"
 name = "my_package" # название вашего проекта
 dynamic = ["version"]
 authors = [
-    { name = "Vasilii Starikov", email = "vasilstar97@gmail.com" },
-] # не забудьте поменять на свое имя :)
-description = "IDU research package boilerplate"
+    { name = "Anna", email = "filanse@icloud.com" },
+]
+description = "Urban AI practice: Nizhnevartovsk city analysis"
 readme = "README.rst"
 requires-python = ">=3.10"
-license = { file = "LICENCE" }
+license = { file = "LICENSE" }
 
 dependencies = [ # здесь необходимо вести все устанавливаемые зависимости: пакеты, которые необходимы для адекватной работы вашей библиотеки
     "geopandas>=1.0.0,<2.0.0",
@@ -68,8 +68,8 @@ docs = [ # зависимости, необходимые для сборки д
 
 
 [project.urls]
-"Repository" = "https://github.com/vasilstar97/python-package-boilerplate"
-"Bug Tracker" = "https://github.com/vasilstar97/python-package-boilerplate/issues"
+"Repository" = "https://github.com/filannse/f-urban-ai-practice"
+"Bug Tracker" = "https://github.com/filannse/f-urban-ai-practice/issues"
 
 # всякие истории, связанные с форматированием кода
 [tool.black]
