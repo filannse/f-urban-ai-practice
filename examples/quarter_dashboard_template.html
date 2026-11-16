@@ -1,0 +1,1013 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Нижневартовск · квартальная модель</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect x='3' y='9' width='6' height='13' rx='1' fill='%230285ff'/%3E%3Crect x='9' y='4' width='6' height='18' rx='1' fill='%230285ff' opacity='.7'/%3E%3Crect x='15' y='12' width='6' height='10' rx='1' fill='%230285ff' opacity='.4'/%3E%3C/svg%3E">
+<style>__LEAFLET_CSS__</style>
+<style>
+:root{
+  --bg:#fff; --surface:#fafafa; --surface-2:#f4f4f5; --text:#18181b; --muted:#71717a;
+  --border:#e4e4e7; --border-strong:#d4d4d8; --accent:#0285ff; --radius:16px;
+  --radius-sm:10px; --shadow:0 1px 2px rgb(0 0 0 / 4%);
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{scroll-behavior:smooth}
+body{
+  margin:0; color:var(--text); background:var(--bg);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  -webkit-font-smoothing:antialiased; font-size:14px; line-height:1.4;
+}
+button,input,select{font:inherit}
+button{cursor:pointer}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0}
+.topbar{
+  display:flex; align-items:center; justify-content:space-between; gap:16px;
+  padding:16px 28px; border-bottom:1px solid var(--border); background:#fff;
+}
+.brand{display:flex; align-items:center; gap:12px; min-width:0}
+.brand-icon{
+  width:36px; height:36px; flex:0 0 auto; border-radius:11px; background:#f0f7ff;
+  display:flex; align-items:center; justify-content:center; color:var(--accent);
+}
+.brand-icon svg{width:24px;height:24px}
+h1{margin:0; font-size:18px; font-weight:650; letter-spacing:-.015em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.muted{color:var(--muted)}
+.brand-sub{margin-top:2px; font-size:12px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.header-meta{font-size:12.5px; color:var(--muted); text-align:right; white-space:nowrap}
+main{max-width:1420px; margin:0 auto; padding:24px 28px 56px}
+.filters{display:flex; align-items:center; gap:9px; flex-wrap:wrap; margin-bottom:20px}
+.select{
+  appearance:none; -webkit-appearance:none; border:1px solid var(--border);
+  background:var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2371717a' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 11px center;
+  color:var(--text); border-radius:var(--radius-sm); padding:8px 32px 8px 12px;
+  font-size:12.5px; line-height:1.2; max-width:260px; cursor:pointer;
+}
+.select:hover{border-color:var(--border-strong)}
+.select:focus-visible{outline:2px solid #bae6fd; outline-offset:1px; border-color:#7dd3fc}
+.filter-count{margin-left:auto; font-size:12.5px; color:var(--muted); white-space:nowrap}
+.link-btn{border:0; background:none; color:var(--accent); font-size:12.5px; padding:4px 2px}
+.link-btn:hover{text-decoration:underline}
+.kpis{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; margin-bottom:28px}
+.kpi{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:15px 18px; box-shadow:var(--shadow)}
+.kpi-label{display:flex; align-items:center; gap:6px; font-size:12.5px; color:var(--muted)}
+.kpi-label .info{font-size:11px; cursor:help; color:#a1a1aa}
+.kpi strong{display:block; margin-top:7px; font-size:32px; line-height:1.1; font-weight:600; letter-spacing:-.035em}
+.kpi small{display:block; margin-top:5px; font-size:11.5px; color:var(--muted)}
+h2{font-size:16px; font-weight:600; letter-spacing:-.01em; margin:30px 0 12px}
+.card{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow)}
+.map-grid{display:grid; grid-template-columns:minmax(0,2.15fr) minmax(300px,1fr); gap:14px; align-items:stretch}
+.map-card{padding:16px 16px 12px}
+.card-head{display:flex; align-items:flex-start; justify-content:space-between; gap:14px; margin-bottom:10px}
+.card-head h3{margin:0; font-size:14.5px; font-weight:600; letter-spacing:-.01em}
+.card-head p{margin:2px 0 0; font-size:11.5px; color:var(--muted)}
+.map-indicator{display:flex; align-items:center; gap:8px; font-size:12px; color:var(--muted); flex:0 0 auto}
+.map-indicator .select{max-width:230px}
+#map{height:560px; border-radius:12px; overflow:hidden; background:#eef1f3; z-index:0}
+#map:focus,#map:focus-visible{outline:2px solid #7dd3fc; outline-offset:-2px}
+.leaflet-container{font-family:inherit; font-size:12px}
+.leaflet-tooltip{background:#fff; border:1px solid var(--border); border-radius:9px; box-shadow:0 6px 18px rgb(0 0 0 / 10%); padding:7px 9px; font-size:12px; line-height:1.45}
+.leaflet-tooltip:before{display:none}
+.tt b{font-weight:600}
+.tt-muted{color:var(--muted); font-size:11px}
+.legend{display:flex; flex-wrap:wrap; gap:7px 16px; margin-top:10px; font-size:12px; color:#3f3f46; min-height:18px}
+.legend-item{display:inline-flex; align-items:center; gap:6px; white-space:nowrap}
+.swatch{width:12px; height:12px; border-radius:3px; flex:0 0 auto; box-shadow:inset 0 0 0 1px rgb(0 0 0 / 6%)}
+.legend-gradient-block{display:flex; flex-direction:column; gap:3px}
+.legend-gradient{width:210px; height:10px; border-radius:99px}
+.legend-gradient-labels{display:flex; justify-content:space-between; width:210px; font-size:10.5px; color:var(--muted)}
+.selected-card{display:flex; flex-direction:column; padding:16px; min-height:560px}
+.empty{display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; margin:auto; padding:28px 18px; max-width:310px}
+.empty svg{width:34px; height:34px; color:var(--accent); margin-bottom:2px}
+.empty h3{font-size:14px; margin:10px 0 6px; font-weight:600}
+.empty p{font-size:12.5px; color:var(--muted); line-height:1.5; margin:0}
+.selected-head{display:flex; align-items:flex-start; justify-content:space-between; gap:10px}
+.selected-kicker{font-size:11.5px; color:var(--muted); margin:0}
+.selected-title{font-size:20px; font-weight:650; letter-spacing:-.02em; margin:1px 0 0}
+.chips{display:flex; flex-wrap:wrap; gap:6px; margin:9px 0 15px}
+.chip{font-size:11.5px; line-height:1.4; padding:3px 8px; border-radius:999px; background:#eef6ff; color:#0369a1; white-space:nowrap}
+.metric-grid{display:grid; grid-template-columns:1fr 1fr; gap:9px}
+.metric{border:1px solid var(--border); border-radius:10px; padding:9px 10px; background:#fff}
+.metric span{display:block; font-size:11px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.metric strong{display:block; margin-top:2px; font-size:15px; font-weight:600; font-variant-numeric:tabular-nums}
+.cmp{margin-top:17px; padding-top:15px; border-top:1px solid var(--border)}
+.cmp-title{font-size:11.5px; color:var(--muted); margin:0 0 10px}
+.cmp-row{margin-bottom:12px}
+.cmp-row:last-child{margin-bottom:0}
+.cmp-label{display:flex; justify-content:space-between; gap:10px; font-size:12px; margin-bottom:5px}
+.cmp-label .value{font-variant-numeric:tabular-nums}
+.cmp-track{height:8px; border-radius:99px; background:#ececef; position:relative; overflow:hidden}
+.cmp-fill{height:100%; border-radius:99px; background:var(--accent)}
+.cmp-marker{position:absolute; top:-2px; bottom:-2px; width:2px; background:#18181b; opacity:.55}
+.cmp-note{font-size:11px; color:var(--muted); margin:10px 0 0; line-height:1.45}
+.btn{
+  border:1px solid var(--border); background:#fff; color:var(--text);
+  border-radius:var(--radius-sm); padding:7px 11px; font-size:12.5px; line-height:1.2;
+}
+.btn:hover{background:var(--surface-2); border-color:var(--border-strong)}
+.btn:disabled{opacity:.45; cursor:not-allowed}
+.btn.primary{background:var(--accent); border-color:var(--accent); color:#fff}
+.btn.primary:hover{background:#0074e0; border-color:#0074e0}
+.btn.ghost{background:transparent; border-color:transparent; color:var(--muted); padding:4px 6px}
+.btn.ghost:hover{background:var(--surface-2); color:var(--text)}
+.charts-grid{display:grid; grid-template-columns:1fr 1fr; gap:14px}
+.chart-card{padding:16px}
+.chart-card h3{margin:0; font-size:14px; font-weight:600}
+.chart-card .chart-sub{margin:2px 0 10px; font-size:11.5px; color:var(--muted)}
+.chart{width:100%; min-height:220px}
+.chart svg{display:block; overflow:visible}
+.chart-empty{min-height:180px; display:flex; align-items:center; justify-content:center; color:var(--muted); font-size:12.5px}
+.chart-note{margin-top:4px; font-size:10.5px; color:var(--muted)}
+.scatter-card{padding:16px}
+.scatter{width:100%; min-height:360px}
+.scatter-note{margin:6px 0 0; font-size:11px; color:var(--muted)}
+.table-card{padding:16px}
+.table-toolbar{display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:12px}
+.search{
+  flex:1 1 260px; min-width:200px; border:1px solid var(--border); background:#fff;
+  border-radius:var(--radius-sm); padding:8px 11px; font-size:12.5px; color:var(--text);
+}
+.search:focus-visible{outline:2px solid #bae6fd; outline-offset:1px; border-color:#7dd3fc}
+.table-wrap{overflow:auto; border:1px solid var(--border); border-radius:12px; background:#fff}
+table{width:100%; border-collapse:collapse; font-size:12.5px}
+th,td{padding:9px 10px; text-align:left; border-bottom:1px solid var(--border); white-space:nowrap}
+th{
+  background:var(--surface-2); color:#52525b; font-size:11.5px; font-weight:600;
+  position:sticky; top:0; z-index:1; user-select:none;
+}
+th[data-sort]{cursor:pointer}
+th[data-sort]:hover{color:var(--text)}
+th[data-sort].sorted-asc::after{content:" ↑"; color:var(--accent)}
+th[data-sort].sorted-desc::after{content:" ↓"; color:var(--accent)}
+tbody tr{cursor:pointer}
+tbody tr:hover{background:#fafafa}
+tbody tr.selected{background:#eff6ff}
+tbody tr:last-child td{border-bottom:none}
+.numeric{text-align:right; font-variant-numeric:tabular-nums}
+.pager{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:10px; font-size:12px; color:var(--muted)}
+.pager-actions{display:flex; gap:6px}
+footer{margin-top:42px; padding-top:16px; border-top:1px solid var(--border); color:var(--muted); font-size:11.5px; line-height:1.65}
+footer b{font-weight:600; color:#52525b}
+@media (max-width:1100px){
+  .map-grid{grid-template-columns:1fr}
+  .selected-card{min-height:auto}
+  #map{height:480px}
+}
+@media (max-width:900px){
+  .kpis{grid-template-columns:1fr 1fr}
+  .charts-grid{grid-template-columns:1fr}
+  .topbar{flex-wrap:wrap}
+  .header-meta{text-align:left}
+}
+@media (max-width:600px){
+  main{padding:16px 14px 44px}
+  .topbar{padding:13px 14px}
+  h1{font-size:16px; white-space:normal}
+  .brand-sub{white-space:normal}
+  .kpis{grid-template-columns:1fr}
+  .kpi strong{font-size:28px}
+  #map{height:400px}
+  .card-head{flex-direction:column}
+  .map-indicator{width:100%; justify-content:space-between}
+  .map-indicator .select{max-width:none; flex:1}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <div class="brand-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M3.5 9.5h5v11h-5a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1Z" fill="currentColor"/><path d="M9.5 5h5v15.5h-5V5Z" fill="currentColor" opacity=".7"/><path d="M15.5 12h4a1 1 0 0 1 1 1v7.5h-5V12Z" fill="currentColor" opacity=".4"/></svg>
+    </div>
+    <div style="min-width:0">
+      <h1>Нижневартовск · квартальная модель</h1>
+      <div class="brand-sub" id="header-sub">Обновлено — · BlocksNet / OpenStreetMap</div>
+    </div>
+  </div>
+  <div class="header-meta" id="header-meta"></div>
+</header>
+
+<main>
+  <section class="filters" aria-label="Фильтры">
+    <label class="sr-only" for="filter-landuse">Землепользование</label>
+    <select id="filter-landuse" class="select">
+      <option value="all">Землепользование: все</option>
+    </select>
+    <label class="sr-only" for="filter-morph">Морфотип</label>
+    <select id="filter-morph" class="select">
+      <option value="all">Морфотип: все</option>
+    </select>
+    <label class="sr-only" for="filter-built">Застройка</label>
+    <select id="filter-built" class="select">
+      <option value="all">Застройка: все</option>
+      <option value="built">Застройка: есть</option>
+      <option value="empty">Застройка: нет</option>
+      <option value="living">Застройка: жилая</option>
+      <option value="nonliving">Застройка: нежилая</option>
+    </select>
+    <label class="sr-only" for="filter-population">Население</label>
+    <select id="filter-population" class="select">
+      <option value="all">Население: все</option>
+      <option value="populated">Население: есть</option>
+      <option value="empty">Население: нет</option>
+    </select>
+    <span class="filter-count" id="filter-count">—</span>
+    <button class="link-btn" id="reset-filters" type="button">Сбросить фильтры</button>
+  </section>
+
+  <section class="kpis" aria-label="Ключевые показатели">
+    <div class="kpi">
+      <div class="kpi-label">Кварталы <span class="info" title="Количество кварталов в текущей выборке">ⓘ</span></div>
+      <strong id="kpi-blocks">—</strong>
+      <small>в текущей выборке</small>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Площадь, га <span class="info" title="Суммарная площадь кварталов">ⓘ</span></div>
+      <strong id="kpi-area">—</strong>
+      <small>суммарная площадь</small>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Расчётное население <span class="info" title="Оценка BlocksNet по жилой площади зданий">ⓘ</span></div>
+      <strong id="kpi-pop">—</strong>
+      <small>оценка BlocksNet</small>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Плотность застройки FSI <span class="info" title="Отношение площади застройки к площади квартала; медиана по застроенным кварталам">ⓘ</span></div>
+      <strong id="kpi-fsi">—</strong>
+      <small>медиана по застроенным</small>
+    </div>
+  </section>
+
+  <h2>Карта кварталов</h2>
+  <div class="map-grid">
+    <div class="card map-card">
+      <div class="card-head">
+        <div>
+          <h3>Нижневартовск</h3>
+          <p>Кварталы и выбранный показатель</p>
+        </div>
+        <label class="map-indicator">
+          <span>Показатель карты</span>
+          <select id="map-indicator" class="select">
+            <option value="land_use">Землепользование</option>
+            <option value="morph">Морфотип</option>
+            <option value="fsi">FSI</option>
+            <option value="gsi">Плотность застройки</option>
+            <option value="density">Плотность населения</option>
+          </select>
+        </label>
+      </div>
+      <div id="map" role="application" aria-label="Карта кварталов Нижневартовска"></div>
+      <div id="legend" class="legend" aria-label="Легенда карты"></div>
+    </div>
+
+    <div class="card selected-card" id="selected-card">
+      <div class="empty" id="selected-empty">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="7"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/><circle cx="12" cy="12" r="2.2"/></svg>
+        <h3>Выберите квартал на карте</h3>
+        <p>Или найдите его по ID в таблице ниже. Здесь появятся атрибуты и сравнение с городом.</p>
+      </div>
+      <div id="selected-details" hidden></div>
+    </div>
+  </div>
+
+  <h2>Структура территории</h2>
+  <div class="charts-grid">
+    <div class="card chart-card">
+      <h3>Землепользование</h3>
+      <p class="chart-sub">Площадь, га · текущая выборка</p>
+      <div class="chart" id="chart-landuse"></div>
+    </div>
+    <div class="card chart-card">
+      <h3>Морфотипы застройки</h3>
+      <p class="chart-sub">Количество кварталов · текущая выборка</p>
+      <div class="chart" id="chart-morph"></div>
+    </div>
+    <div class="card chart-card">
+      <h3>Плотность населения</h3>
+      <p class="chart-sub">чел./га · кварталы с населением</p>
+      <div class="chart" id="chart-density"></div>
+    </div>
+    <div class="card chart-card">
+      <h3>Плотность застройки</h3>
+      <p class="chart-sub">м²/га · кварталы с застройкой</p>
+      <div class="chart" id="chart-gsi"></div>
+    </div>
+  </div>
+
+  <h2>Плотность, застройка и население</h2>
+  <div class="card scatter-card">
+    <div class="scatter" id="chart-scatter"></div>
+    <p class="scatter-note">Каждая точка — квартал. По осям — FSI и плотность населения. Значения выше 98-го перцентиля прижаты к краю графика; цвет точки — землепользование.</p>
+  </div>
+
+  <h2>Кварталы в выборке</h2>
+  <div class="card table-card">
+    <div class="table-toolbar">
+      <input id="table-search" class="search" type="search" placeholder="Поиск по ID, землепользованию или морфотипу">
+      <button class="btn" id="download-csv" type="button">Скачать CSV</button>
+      <button class="btn" id="download-geojson" type="button">Скачать GeoJSON</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th data-sort="block_id" title="Сортировать">Квартал</th>
+            <th data-sort="land_use_label" title="Сортировать">Землепользование</th>
+            <th data-sort="morph_label" title="Сортировать">Морфотип</th>
+            <th data-sort="area_ha" class="numeric" title="Сортировать">Площадь, га</th>
+            <th data-sort="population" class="numeric" title="Сортировать">Население</th>
+            <th data-sort="fsi" class="numeric" title="Сортировать">FSI</th>
+            <th data-sort="footprint_m2" class="numeric" title="Сортировать">Застройка, м²</th>
+            <th data-sort="accessibility" class="numeric" title="Сортировать">Доступность, мин</th>
+          </tr>
+        </thead>
+        <tbody id="table-body"></tbody>
+      </table>
+    </div>
+    <div class="pager">
+      <span id="page-info">—</span>
+      <div class="pager-actions">
+        <button class="btn" id="prev-page" type="button">Назад</button>
+        <button class="btn" id="next-page" type="button">Вперёд</button>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <b>Источник:</b> OpenStreetMap contributors, BlocksNet. <b>Граф:</b> drive, максимальное время поездки 180 мин. <b>Поликлиники:</b> OSM amenity=clinic/polyclinic. <b>Дата расчёта:</b> <span id="footer-date">—</span>.
+    Показатели обеспеченности и доступности рассчитаны по квартальной модели; расчётное население — оценка, а не официальная статистика.
+  </footer>
+</main>
+
+<script>__LEAFLET_JS__</script>
+<script>
+const BLOCKS = __BLOCKS_JSON__;
+const META = __META_JSON__;
+
+const LAND_USE_LABELS = {
+  residential: "Жилое",
+  business: "Деловое",
+  recreation: "Рекреационное",
+  industrial: "Промышленное",
+  transport: "Транспортное",
+  special: "Специальное",
+  agriculture: "Сельскохозяйственное",
+  undefined: "Не определено"
+};
+const LAND_USE_COLORS = {
+  residential: "#4a90d9",
+  business: "#c9a227",
+  recreation: "#7aa95c",
+  industrial: "#8a8f98",
+  transport: "#d97706",
+  special: "#9b59b6",
+  agriculture: "#a3b18a",
+  undefined: "#d4d4d8"
+};
+const MORPH_LABELS = {
+  "individual residential": "Индивидуальная",
+  "low-rise model": "Малоэтажная",
+  "mid-rise": "Среднеэтажная",
+  "high-rise soviet microdistrict": "Многоэтажная",
+  "low-rise non-residential": "Малоэтажная нежилая",
+  undefined: "Не определено"
+};
+const MORPH_COLORS = {
+  "individual residential": "#a7c957",
+  "low-rise model": "#6aa84f",
+  "mid-rise": "#38761d",
+  "high-rise soviet microdistrict": "#274e13",
+  "low-rise non-residential": "#cfe3b8",
+  undefined: "#d4d4d8"
+};
+const CONTINUOUS = {
+  fsi: {label: "FSI", unit: "", digits: 2, transform: p => p.fsi,
+    colors: ["#e0f2fe", "#7dd3fc", "#38bdf8", "#0284c7", "#075985"]},
+  gsi: {label: "Плотность застройки", unit: "м²/га", digits: 0, transform: p => p.gsi_m2ha,
+    colors: ["#ecfccb", "#bef264", "#84cc16", "#4d7c0f", "#365314"]},
+  density: {label: "Плотность населения", unit: "чел./га", digits: 1, transform: p => p.pop_density,
+    colors: ["#f3e8ff", "#d8b4fe", "#a855f7", "#7e22ce", "#581c87"]}
+};
+
+const state = {
+  landuse: "all",
+  morph: "all",
+  built: "all",
+  population: "all",
+  search: "",
+  sortKey: "block_id",
+  sortDir: 1,
+  page: 1,
+  pageSize: 20,
+  mapIndicator: "land_use",
+  selectedId: null
+};
+
+let map = null;
+let mapLayer = null;
+let mapScaleMax = 1;
+
+const nf0 = new Intl.NumberFormat("ru-RU", {maximumFractionDigits: 0});
+const nf1 = new Intl.NumberFormat("ru-RU", {maximumFractionDigits: 1});
+const nf2 = new Intl.NumberFormat("ru-RU", {minimumFractionDigits: 2, maximumFractionDigits: 2});
+const nf3 = new Intl.NumberFormat("ru-RU", {minimumFractionDigits: 3, maximumFractionDigits: 3});
+
+function fmt(value, digits = 0) {
+  if (value === null || value === undefined || Number.isNaN(value)) return "—";
+  if (digits === 1) return nf1.format(value);
+  if (digits === 2) return nf2.format(value);
+  if (digits === 3) return nf3.format(value);
+  return nf0.format(value);
+}
+function fmtInt(value) { return fmt(value, 0); }
+function sum(values) { return values.reduce((a, b) => a + (Number(b) || 0), 0); }
+function median(values) {
+  if (!values.length) return null;
+  return quantile(values, 0.5);
+}
+function quantile(values, q) {
+  if (!values.length) return 0;
+  const sorted = [...values].sort((a, b) => a - b);
+  const pos = (sorted.length - 1) * q;
+  const base = Math.floor(pos);
+  const rest = pos - base;
+  return sorted[base + 1] !== undefined ? sorted[base] + rest * (sorted[base + 1] - sorted[base]) : sorted[base];
+}
+function escapeHtml(value) {
+  return String(value).replace(/[&<>"']/g, ch => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[ch]));
+}
+function truncate(value, length) {
+  const text = String(value);
+  return text.length > length ? text.slice(0, length - 1) + "…" : text;
+}
+function debounce(fn, wait) {
+  let timer = null;
+  return (...args) => { clearTimeout(timer); timer = setTimeout(() => fn(...args), wait); };
+}
+
+function getFiltered(includeSearch = false) {
+  return BLOCKS.features.filter(feature => {
+    const p = feature.properties;
+    if (state.landuse !== "all" && p.land_use !== state.landuse) return false;
+    if (state.morph !== "all" && p.morph !== state.morph) return false;
+    if (state.built === "built" && !(p.count_buildings > 0)) return false;
+    if (state.built === "empty" && p.count_buildings > 0) return false;
+    if (state.built === "living" && !(p.count_buildings > 0 && p.share_living !== null && p.share_living >= 0.5)) return false;
+    if (state.built === "nonliving" && !(p.count_buildings > 0 && (p.share_living === null || p.share_living < 0.5))) return false;
+    if (state.population === "populated" && !(p.population > 0)) return false;
+    if (state.population === "empty" && p.population > 0) return false;
+    if (includeSearch && state.search) {
+      const hay = `${p.block_id} ${p.land_use_label} ${p.morph_label}`.toLowerCase();
+      if (!hay.includes(state.search.toLowerCase())) return false;
+    }
+    return true;
+  });
+}
+
+function update() {
+  const features = getFiltered(false);
+  if (state.selectedId !== null && !features.some(f => f.properties.block_id === state.selectedId)) {
+    clearSelection(false);
+  }
+  updateKpis(features);
+  updateMap(features);
+  updateCharts(features);
+  updateTable();
+  document.getElementById("filter-count").textContent =
+    `${fmtInt(features.length)} из ${fmtInt(BLOCKS.features.length)} кварталов`;
+}
+
+function updateKpis(features) {
+  const area = sum(features.map(f => f.properties.area_ha));
+  const population = sum(features.map(f => f.properties.population));
+  const fsiValues = features.map(f => f.properties.fsi).filter(value => value > 0);
+  document.getElementById("kpi-blocks").textContent = fmtInt(features.length);
+  document.getElementById("kpi-area").textContent = fmt(area, 0);
+  document.getElementById("kpi-pop").textContent = fmtInt(population);
+  document.getElementById("kpi-fsi").textContent = fsiValues.length ? fmt(median(fsiValues), 2) : "—";
+}
+
+function mapFill(p) {
+  if (state.mapIndicator === "land_use") return LAND_USE_COLORS[p.land_use] || LAND_USE_COLORS.undefined;
+  if (state.mapIndicator === "morph") return MORPH_COLORS[p.morph] || MORPH_COLORS.undefined;
+  const cfg = CONTINUOUS[state.mapIndicator];
+  const value = cfg.transform(p);
+  if (!value) return "#f1f1f3";
+  const t = Math.min(1, value / mapScaleMax);
+  const index = Math.min(cfg.colors.length - 1, Math.floor(t * cfg.colors.length));
+  return cfg.colors[index];
+}
+
+function styleFeature(feature) {
+  const p = feature.properties;
+  const selected = p.block_id === state.selectedId;
+  return {
+    color: selected ? "#18181b" : "rgba(255,255,255,0.75)",
+    weight: selected ? 2.5 : 0.6,
+    fillColor: mapFill(p),
+    fillOpacity: selected ? 0.95 : 0.86
+  };
+}
+
+function tooltipHtml(p) {
+  let body;
+  if (state.mapIndicator === "land_use" || state.mapIndicator === "morph") {
+    body = `${escapeHtml(p.land_use_label)}<br>${escapeHtml(p.morph_label)}`;
+  } else {
+    const cfg = CONTINUOUS[state.mapIndicator];
+    body = `${cfg.label}: <b>${fmt(cfg.transform(p), cfg.digits)} ${cfg.unit}</b>`;
+  }
+  return `<div class="tt"><b>Квартал ${p.block_id}</b><br>${body}<br><span class="tt-muted">FSI ${fmt(p.fsi, 2)} · ${fmtInt(p.population)} чел.</span></div>`;
+}
+
+function updateMap(features) {
+  const cfg = CONTINUOUS[state.mapIndicator];
+  if (cfg) {
+    const values = features.map(f => cfg.transform(f.properties)).filter(value => value > 0);
+    mapScaleMax = Math.max(quantile(values, 0.95), cfg === CONTINUOUS.fsi ? 0.01 : 1);
+  } else {
+    mapScaleMax = 1;
+  }
+  if (mapLayer) map.removeLayer(mapLayer);
+  mapLayer = L.geoJSON({type: "FeatureCollection", features}, {
+    style: styleFeature,
+    onEachFeature: (feature, layer) => {
+      layer.bindTooltip(tooltipHtml(feature.properties), {sticky: true, direction: "top", opacity: 0.96});
+      layer.on({
+        click: () => selectBlock(feature.properties.block_id),
+        mouseover: () => {
+          if (feature.properties.block_id !== state.selectedId) layer.setStyle({weight: 1.5, color: "#fff"});
+        },
+        mouseout: () => {
+          if (feature.properties.block_id !== state.selectedId) layer.setStyle(styleFeature(feature));
+        }
+      });
+    }
+  }).addTo(map);
+  updateLegend(features);
+}
+
+function updateLegend(features) {
+  const el = document.getElementById("legend");
+  if (state.mapIndicator === "land_use" || state.mapIndicator === "morph") {
+    const key = state.mapIndicator === "land_use" ? "land_use" : "morph";
+    const labels = state.mapIndicator === "land_use" ? LAND_USE_LABELS : MORPH_LABELS;
+    const colors = state.mapIndicator === "land_use" ? LAND_USE_COLORS : MORPH_COLORS;
+    const counts = new Map();
+    features.forEach(feature => {
+      const value = feature.properties[key];
+      counts.set(value, (counts.get(value) || 0) + 1);
+    });
+    const items = [...counts.entries()].sort((a, b) => b[1] - a[1]);
+    el.innerHTML = items.map(([value, count]) => {
+      const color = colors[value] || colors.undefined;
+      return `<span class="legend-item"><span class="swatch" style="background:${color}"></span>${escapeHtml(labels[value] || value)} · ${count}</span>`;
+    }).join("");
+  } else {
+    const cfg = CONTINUOUS[state.mapIndicator];
+    const stops = cfg.colors.map((color, index) => `${color} ${(index / (cfg.colors.length - 1) * 100).toFixed(0)}%`).join(", ");
+    el.innerHTML = `<div class="legend-gradient-block"><div class="legend-gradient" style="background:linear-gradient(90deg, ${stops})"></div><div class="legend-gradient-labels"><span>0</span><span>${fmt(mapScaleMax, cfg.digits)} ${cfg.unit}</span></div></div>`;
+  }
+}
+
+function selectBlock(blockId) {
+  const feature = BLOCKS.features.find(f => f.properties.block_id === blockId);
+  if (!feature) return;
+  state.selectedId = blockId;
+  renderSelected(feature);
+  if (mapLayer) {
+    mapLayer.eachLayer(layer => {
+      layer.setStyle(styleFeature(layer.feature));
+      if (layer.feature.properties.block_id === blockId) layer.bringToFront();
+    });
+  }
+  updateTable();
+}
+
+function clearSelection(restyle = true) {
+  state.selectedId = null;
+  document.getElementById("selected-empty").hidden = false;
+  document.getElementById("selected-details").hidden = true;
+  document.getElementById("selected-details").innerHTML = "";
+  if (restyle && mapLayer) mapLayer.eachLayer(layer => layer.setStyle(styleFeature(layer.feature)));
+  updateTable();
+}
+
+function renderSelected(feature) {
+  const p = feature.properties;
+  const empty = document.getElementById("selected-empty");
+  const details = document.getElementById("selected-details");
+  empty.hidden = true;
+  details.hidden = false;
+  const cityFsi = META.median_fsi_built || 0;
+  const cityDensity = META.median_density_built || 0;
+  const fsiScale = Math.max(p.fsi, cityFsi, 0.01) * 1.18;
+  const densityScale = Math.max(p.pop_density, cityDensity, 0.1) * 1.18;
+  const fsiFill = Math.min(100, p.fsi / fsiScale * 100);
+  const densityFill = Math.min(100, p.pop_density / densityScale * 100);
+  const fsiMarker = Math.min(100, cityFsi / fsiScale * 100);
+  const densityMarker = Math.min(100, cityDensity / densityScale * 100);
+  const provision = value => value === null || value === undefined ? "—" : fmt(value, 3);
+  details.innerHTML = `
+    <div class="selected-head">
+      <div>
+        <p class="selected-kicker">Квартал</p>
+        <h3 class="selected-title">${p.block_id}</h3>
+      </div>
+      <button class="btn ghost" id="clear-selection" type="button" title="Сбросить выбор">Сбросить</button>
+    </div>
+    <div class="chips">
+      <span class="chip">${escapeHtml(p.land_use_label)}</span>
+      <span class="chip">${escapeHtml(p.morph_label)}</span>
+    </div>
+    <div class="metric-grid">
+      <div class="metric"><span>Площадь</span><strong>${fmt(p.area_ha, 1)} га</strong></div>
+      <div class="metric"><span>Население</span><strong>${fmtInt(p.population)}</strong></div>
+      <div class="metric"><span>FSI</span><strong>${fmt(p.fsi, 2)}</strong></div>
+      <div class="metric"><span>Застройка</span><strong>${fmtInt(p.footprint_m2)} м²</strong></div>
+      <div class="metric"><span>Плотность</span><strong>${fmt(p.pop_density, 1)} чел./га</strong></div>
+      <div class="metric"><span>Доступность</span><strong>${p.accessibility === null ? "—" : fmt(p.accessibility, 0) + " мин"}</strong></div>
+    </div>
+    <div class="cmp">
+      <p class="cmp-title">Сравнение с городом · квартал / медиана</p>
+      <div class="cmp-row">
+        <div class="cmp-label"><span>FSI</span><span class="value">${fmt(p.fsi, 2)} / ${fmt(cityFsi, 2)}</span></div>
+        <div class="cmp-track"><div class="cmp-fill" style="width:${fsiFill}%"></div><div class="cmp-marker" style="left:${fsiMarker}%"></div></div>
+      </div>
+      <div class="cmp-row">
+        <div class="cmp-label"><span>Плотность населения</span><span class="value">${fmt(p.pop_density, 1)} / ${fmt(cityDensity, 1)}</span></div>
+        <div class="cmp-track"><div class="cmp-fill" style="width:${densityFill}%"></div><div class="cmp-marker" style="left:${densityMarker}%"></div></div>
+      </div>
+      <p class="cmp-note">Чёрная метка — медиана города. Сервисы в квартале: школы ${fmtInt(p.count_school)} · детсады ${fmtInt(p.count_kindergarten)} · поликлиники ${fmtInt(p.count_polyclinic)}.<br>Обеспеченность: школы ${provision(p.provision_school)} · детсады ${provision(p.provision_kindergarten)} · поликлиники ${provision(p.provision_polyclinic)}.</p>
+    </div>`;
+  document.getElementById("clear-selection").addEventListener("click", () => clearSelection());
+}
+
+function mkSvg(width, height) {
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("width", width);
+  svg.setAttribute("height", height);
+  svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+  svg.setAttribute("role", "img");
+  return svg;
+}
+function mkText(x, y, text, size = 12, fill = "#3f3f46", anchor = "start") {
+  const el = document.createElementNS("http://www.w3.org/2000/svg", "text");
+  el.setAttribute("x", x);
+  el.setAttribute("y", y);
+  el.setAttribute("font-size", size);
+  el.setAttribute("fill", fill);
+  el.setAttribute("text-anchor", anchor);
+  el.textContent = text;
+  return el;
+}
+function mkRect(x, y, width, height, fill, radius = 0) {
+  const el = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+  el.setAttribute("x", x);
+  el.setAttribute("y", y);
+  el.setAttribute("width", Math.max(0, width));
+  el.setAttribute("height", height);
+  el.setAttribute("fill", fill);
+  el.setAttribute("rx", radius);
+  return el;
+}
+function mkLine(x1, y1, x2, y2, stroke, width = 1, dash = null) {
+  const el = document.createElementNS("http://www.w3.org/2000/svg", "line");
+  el.setAttribute("x1", x1); el.setAttribute("y1", y1);
+  el.setAttribute("x2", x2); el.setAttribute("y2", y2);
+  el.setAttribute("stroke", stroke); el.setAttribute("stroke-width", width);
+  if (dash) el.setAttribute("stroke-dasharray", dash);
+  return el;
+}
+
+function renderBars(el, items, {unit = "", digits = 0} = {}) {
+  el.innerHTML = "";
+  if (!items.length) { el.innerHTML = '<div class="chart-empty">Нет данных</div>'; return; }
+  const width = Math.max(el.clientWidth || 0, 320);
+  const rowH = 30;
+  const labelW = Math.min(180, Math.max(110, width * 0.38));
+  const valueW = 82;
+  const barMaxW = Math.max(40, width - labelW - valueW - 10);
+  const height = items.length * rowH + 4;
+  const svg = mkSvg(width, height);
+  const max = Math.max(...items.map(item => item.value), 1);
+  items.forEach((item, index) => {
+    const y = index * rowH + 5;
+    svg.appendChild(mkText(0, y + 12, truncate(item.label, 26), 12, "#3f3f46"));
+    svg.appendChild(mkRect(labelW, y + 4, Math.max(2, item.value / max * barMaxW), 16, item.color || "#0285ff", 4));
+    svg.appendChild(mkText(width, y + 12, `${fmt(item.value, digits)}${unit ? " " + unit : ""}`, 11.5, "#71717a", "end"));
+  });
+  el.appendChild(svg);
+}
+
+function renderHistogram(el, values, {unit = "", digits = 1, color = "#4a90d9"} = {}) {
+  el.innerHTML = "";
+  if (!values.length) { el.innerHTML = '<div class="chart-empty">Нет данных</div>'; return; }
+  const width = Math.max(el.clientWidth || 0, 320);
+  const height = 220;
+  const pad = {l: 10, r: 10, t: 16, b: 34};
+  const cap = Math.max(quantile(values, 0.98), 0.0001);
+  const bins = 10;
+  const step = cap / bins;
+  const counts = new Array(bins).fill(0);
+  let cappedCount = 0;
+  values.forEach(value => {
+    if (value > cap) { cappedCount++; counts[bins - 1]++; }
+    else { const index = Math.min(bins - 1, Math.floor(value / step)); counts[index]++; }
+  });
+  const maxCount = Math.max(...counts, 1);
+  const plotW = width - pad.l - pad.r;
+  const plotH = height - pad.t - pad.b;
+  const barW = plotW / bins;
+  const svg = mkSvg(width, height);
+  counts.forEach((count, index) => {
+    const barH = count / maxCount * plotH;
+    const x = pad.l + index * barW + 1.5;
+    const y = pad.t + plotH - barH;
+    svg.appendChild(mkRect(x, y, Math.max(1, barW - 3), barH, color, 3));
+  });
+  svg.appendChild(mkLine(pad.l, pad.t + plotH, width - pad.r, pad.t + plotH, "#d4d4d8", 1));
+  svg.appendChild(mkText(pad.l, height - 12, "0", 10.5, "#71717a"));
+  svg.appendChild(mkText(width - pad.r, height - 12, `${fmt(cap, digits)} ${unit}`, 10.5, "#71717a", "end"));
+  svg.appendChild(mkText(pad.l + plotW / 2, height - 12, `${fmt(cap / 2, digits)} ${unit}`, 10.5, "#71717a", "middle"));
+  const med = median(values);
+  const medX = pad.l + Math.min(1, med / cap) * plotW;
+  svg.appendChild(mkLine(medX, pad.t + 2, medX, pad.t + plotH, "#18181b", 1.2, "3 3"));
+  const medLabel = `медиана ${fmt(med, digits)} ${unit}`;
+  const medAnchor = medX > width * 0.62 ? "end" : "start";
+  svg.appendChild(mkText(medX + (medAnchor === "end" ? -5 : 5), pad.t + 10, medLabel, 10.5, "#18181b", medAnchor));
+  el.appendChild(svg);
+  if (cappedCount > 0) {
+    const note = document.createElement("div");
+    note.className = "chart-note";
+    note.textContent = `${cappedCount} значений выше ${fmt(cap, digits)} ${unit} — в последнем столбце`;
+    el.appendChild(note);
+  }
+}
+
+function renderScatter(el, features) {
+  el.innerHTML = "";
+  const rows = features.filter(f => f.properties.fsi > 0 && f.properties.population > 0);
+  if (!rows.length) { el.innerHTML = '<div class="chart-empty">Нет данных</div>'; return; }
+  const width = Math.max(el.clientWidth || 0, 640);
+  const height = 360;
+  const pad = {l: 56, r: 20, t: 18, b: 44};
+  const xMax = Math.max(quantile(rows.map(f => f.properties.fsi), 0.98), 0.01);
+  const yMax = Math.max(quantile(rows.map(f => f.properties.pop_density), 0.98), 1);
+  const plotW = width - pad.l - pad.r;
+  const plotH = height - pad.t - pad.b;
+  const xOf = value => pad.l + Math.min(1, value / xMax) * plotW;
+  const yOf = value => pad.t + plotH - Math.min(1, value / yMax) * plotH;
+  const svg = mkSvg(width, height);
+  for (let i = 0; i <= 4; i++) {
+    const y = pad.t + plotH * i / 4;
+    const value = yMax * (1 - i / 4);
+    svg.appendChild(mkLine(pad.l, y, width - pad.r, y, "#ececef", 1));
+    svg.appendChild(mkText(pad.l - 7, y + 3.5, fmt(value, 1), 10.5, "#71717a", "end"));
+  }
+  for (let i = 0; i <= 4; i++) {
+    const x = pad.l + plotW * i / 4;
+    const value = xMax * i / 4;
+    svg.appendChild(mkLine(x, pad.t, x, pad.t + plotH, "#f4f4f5", 1));
+    svg.appendChild(mkText(x, height - 24, fmt(value, 2), 10.5, "#71717a", i === 0 ? "start" : i === 4 ? "end" : "middle"));
+  }
+  const colors = LAND_USE_COLORS;
+  rows.forEach(f => {
+    const p = f.properties;
+    const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    circle.setAttribute("cx", xOf(p.fsi));
+    circle.setAttribute("cy", yOf(p.pop_density));
+    circle.setAttribute("r", 3.4);
+    circle.setAttribute("fill", colors[p.land_use] || colors.undefined);
+    circle.setAttribute("fill-opacity", 0.74);
+    circle.setAttribute("stroke", "#fff");
+    circle.setAttribute("stroke-width", 0.6);
+    const title = document.createElementNS("http://www.w3.org/2000/svg", "title");
+    title.textContent = `Квартал ${p.block_id} · ${p.land_use_label}\nFSI ${fmt(p.fsi, 2)} · ${fmt(p.pop_density, 1)} чел./га`;
+    circle.appendChild(title);
+    svg.appendChild(circle);
+  });
+  svg.appendChild(mkText(pad.l, 12, "Плотность населения, чел./га", 11, "#71717a"));
+  svg.appendChild(mkText(width - pad.r, height - 6, "FSI", 11, "#71717a", "end"));
+  el.appendChild(svg);
+}
+
+function updateCharts(features) {
+  const landuseGroups = new Map();
+  features.forEach(f => {
+    const p = f.properties;
+    const item = landuseGroups.get(p.land_use) || {label: p.land_use_label, value: 0, color: LAND_USE_COLORS[p.land_use] || LAND_USE_COLORS.undefined};
+    item.value += p.area_ha;
+    landuseGroups.set(p.land_use, item);
+  });
+  renderBars(document.getElementById("chart-landuse"), [...landuseGroups.values()].sort((a, b) => b.value - a.value), {unit: "га", digits: 0});
+
+  const morphGroups = new Map();
+  features.forEach(f => {
+    const p = f.properties;
+    const item = morphGroups.get(p.morph) || {label: p.morph_label, value: 0, color: MORPH_COLORS[p.morph] || MORPH_COLORS.undefined};
+    item.value += 1;
+    morphGroups.set(p.morph, item);
+  });
+  renderBars(document.getElementById("chart-morph"), [...morphGroups.values()].sort((a, b) => b.value - a.value), {unit: "кварталов", digits: 0});
+
+  renderHistogram(document.getElementById("chart-density"), features.filter(f => f.properties.population > 0).map(f => f.properties.pop_density), {unit: "чел./га", digits: 1, color: "#4a90d9"});
+  renderHistogram(document.getElementById("chart-gsi"), features.filter(f => f.properties.count_buildings > 0).map(f => f.properties.gsi_m2ha), {unit: "м²/га", digits: 0, color: "#7aa95c"});
+  renderScatter(document.getElementById("chart-scatter"), features);
+}
+
+function sortedFilteredForTable() {
+  const rows = getFiltered(true).slice();
+  rows.sort((a, b) => {
+    const av = a.properties[state.sortKey];
+    const bv = b.properties[state.sortKey];
+    if (typeof av === "string" && typeof bv === "string") return av.localeCompare(bv, "ru") * state.sortDir;
+    const an = av === null || av === undefined ? -Infinity : av;
+    const bn = bv === null || bv === undefined ? -Infinity : bv;
+    return (an - bn) * state.sortDir;
+  });
+  return rows;
+}
+
+function updateTable() {
+  const rows = sortedFilteredForTable();
+  const totalPages = Math.max(1, Math.ceil(rows.length / state.pageSize));
+  state.page = Math.min(Math.max(1, state.page), totalPages);
+  const start = (state.page - 1) * state.pageSize;
+  const pageRows = rows.slice(start, start + state.pageSize);
+  const tbody = document.getElementById("table-body");
+  if (!pageRows.length) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#71717a;padding:24px">Ничего не найдено</td></tr>';
+  } else {
+    tbody.innerHTML = pageRows.map(f => {
+      const p = f.properties;
+      return `<tr data-id="${p.block_id}" class="${p.block_id === state.selectedId ? "selected" : ""}">
+        <td>${p.block_id}</td>
+        <td>${escapeHtml(p.land_use_label)}</td>
+        <td>${escapeHtml(p.morph_label)}</td>
+        <td class="numeric">${fmt(p.area_ha, 1)}</td>
+        <td class="numeric">${fmtInt(p.population)}</td>
+        <td class="numeric">${fmt(p.fsi, 2)}</td>
+        <td class="numeric">${fmtInt(p.footprint_m2)}</td>
+        <td class="numeric">${p.accessibility === null ? "—" : fmt(p.accessibility, 0)}</td>
+      </tr>`;
+    }).join("");
+  }
+  const end = Math.min(start + state.pageSize, rows.length);
+  document.getElementById("page-info").textContent = rows.length ? `${start + 1}–${end} из ${rows.length}` : "0 из 0";
+  document.getElementById("prev-page").disabled = state.page <= 1;
+  document.getElementById("next-page").disabled = state.page >= totalPages;
+  document.querySelectorAll("th[data-sort]").forEach(th => {
+    th.classList.toggle("sorted-asc", th.dataset.sort === state.sortKey && state.sortDir === 1);
+    th.classList.toggle("sorted-desc", th.dataset.sort === state.sortKey && state.sortDir === -1);
+  });
+}
+
+function downloadBlob(text, filename, type) {
+  const blob = new Blob([text], {type});
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function csvCell(value) {
+  const text = String(value).replace(/\u00a0/g, " ");
+  return /[;"\n\r]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+}
+
+function downloadCsv() {
+  const rows = getFiltered(true);
+  const header = ["Квартал", "Землепользование", "Морфотип", "Площадь, га", "Население", "FSI", "Застройка, м²", "Доступность, мин", "Плотность, чел./га"];
+  const lines = [header.join(";")];
+  rows.forEach(f => {
+    const p = f.properties;
+    lines.push([
+      p.block_id, p.land_use_label, p.morph_label, fmt(p.area_ha, 2), p.population,
+      fmt(p.fsi, 3), Math.round(p.footprint_m2), p.accessibility === null ? "" : fmt(p.accessibility, 0), fmt(p.pop_density, 1)
+    ].map(csvCell).join(";"));
+  });
+  downloadBlob("\ufeff" + lines.join("\r\n"), "nizhnevartovsk_blocks.csv", "text/csv;charset=utf-8");
+}
+
+function downloadGeoJson() {
+  const rows = getFiltered(true);
+  downloadBlob(JSON.stringify({type: "FeatureCollection", features: rows}, null, 2), "nizhnevartovsk_blocks.geojson", "application/geo+json");
+}
+
+function initFilters() {
+  const landuseCounts = new Map();
+  const morphCounts = new Map();
+  BLOCKS.features.forEach(f => {
+    const p = f.properties;
+    landuseCounts.set(p.land_use, (landuseCounts.get(p.land_use) || 0) + 1);
+    morphCounts.set(p.morph, (morphCounts.get(p.morph) || 0) + 1);
+  });
+  const landuseOrder = ["residential", "recreation", "industrial", "business", "special", "transport", "agriculture", "undefined"];
+  const landuseSelect = document.getElementById("filter-landuse");
+  landuseOrder.filter(value => landuseCounts.has(value)).forEach(value => {
+    const option = document.createElement("option");
+    option.value = value;
+    option.textContent = `Землепользование: ${LAND_USE_LABELS[value] || value}`;
+    landuseSelect.appendChild(option);
+  });
+  const morphOrder = ["individual residential", "low-rise model", "mid-rise", "high-rise soviet microdistrict", "low-rise non-residential", "undefined"];
+  const morphSelect = document.getElementById("filter-morph");
+  morphOrder.filter(value => morphCounts.has(value)).forEach(value => {
+    const option = document.createElement("option");
+    option.value = value;
+    option.textContent = `Морфотип: ${MORPH_LABELS[value] || value}`;
+    morphSelect.appendChild(option);
+  });
+}
+
+function resetFilters() {
+  state.landuse = "all";
+  state.morph = "all";
+  state.built = "all";
+  state.population = "all";
+  state.search = "";
+  state.page = 1;
+  document.getElementById("filter-landuse").value = "all";
+  document.getElementById("filter-morph").value = "all";
+  document.getElementById("filter-built").value = "all";
+  document.getElementById("filter-population").value = "all";
+  document.getElementById("table-search").value = "";
+  update();
+}
+
+function init() {
+  document.getElementById("header-sub").textContent = `Обновлено ${META.updated} · BlocksNet / OpenStreetMap`;
+  document.getElementById("header-meta").textContent = `${fmtInt(META.total_blocks)} кварталов · ${fmt(META.total_area_ha, 0)} га`;
+  document.getElementById("footer-date").textContent = META.updated;
+  initFilters();
+
+  map = L.map("map", {zoomControl: true, preferCanvas: true, zoomSnap: 0.25});
+  L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}", {
+    attribution: "Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ",
+    maxZoom: 16
+  }).addTo(map);
+  const initialBounds = L.geoJSON(BLOCKS).getBounds();
+  map.fitBounds(initialBounds, {padding: [12, 12]});
+
+  document.getElementById("filter-landuse").addEventListener("change", event => {
+    state.landuse = event.target.value; state.page = 1; update();
+  });
+  document.getElementById("filter-morph").addEventListener("change", event => {
+    state.morph = event.target.value; state.page = 1; update();
+  });
+  document.getElementById("filter-built").addEventListener("change", event => {
+    state.built = event.target.value; state.page = 1; update();
+  });
+  document.getElementById("filter-population").addEventListener("change", event => {
+    state.population = event.target.value; state.page = 1; update();
+  });
+  document.getElementById("map-indicator").addEventListener("change", event => {
+    state.mapIndicator = event.target.value;
+    updateMap(getFiltered(false));
+  });
+  document.getElementById("reset-filters").addEventListener("click", resetFilters);
+  document.getElementById("table-search").addEventListener("input", event => {
+    state.search = event.target.value.trim(); state.page = 1; updateTable();
+  });
+  document.getElementById("table-body").addEventListener("click", event => {
+    const row = event.target.closest("tr[data-id]");
+    if (row) selectBlock(Number(row.dataset.id));
+  });
+  document.querySelectorAll("th[data-sort]").forEach(th => {
+    th.addEventListener("click", () => {
+      const key = th.dataset.sort;
+      if (state.sortKey === key) state.sortDir *= -1;
+      else { state.sortKey = key; state.sortDir = 1; }
+      updateTable();
+    });
+  });
+  document.getElementById("prev-page").addEventListener("click", () => {
+    state.page = Math.max(1, state.page - 1); updateTable();
+  });
+  document.getElementById("next-page").addEventListener("click", () => {
+    state.page += 1; updateTable();
+  });
+  document.getElementById("download-csv").addEventListener("click", downloadCsv);
+  document.getElementById("download-geojson").addEventListener("click", downloadGeoJson);
+  window.addEventListener("resize", debounce(() => {
+    if (map) map.invalidateSize();
+    updateCharts(getFiltered(false));
+  }, 160));
+
+  update();
+  window.__dashboard = {map, blocks: BLOCKS, selectBlock, getFiltered};
+}
+
+init();
+</script>
+</body>
+</html>

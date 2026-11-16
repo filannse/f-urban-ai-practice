@@ -32,6 +32,9 @@ instance/
 # Jupyter Notebook
 .ipynb_checkpoints
 
+# Generated BlocksNet cache
+examples/data/nizhnevartovsk/
+
 # Environments
 .env
 .venv/
