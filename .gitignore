@@ -35,6 +35,9 @@ instance/
 # Generated BlocksNet cache
 examples/data/nizhnevartovsk/
 
+# Large OSM extracts
+*.osm.pbf
+
 # Environments
 .env
 .venv/

@@ -1,0 +1,66 @@
+{
+  "generated_at": "2026-11-16T11:10:43.908152+00:00",
+  "territory_query": "Нижневартовск, Ханты-Мансийский автономный округ — Югра, Россия",
+  "area_km2": 270.66655011180063,
+  "crs": "EPSG:32643",
+  "graph_source": "OpenStreetMap via IduEdu; local .osm.pbf cache",
+  "data_source": {
+    "pbf_url": "https://download.openstreetmap.fr/extracts/russia/ural_federal_district-latest.osm.pbf",
+    "cache_script": "examples/prepare_osm_cache.py",
+    "osm_license": "ODbL 1.0"
+  },
+  "travel_time_unit": "minutes",
+  "blocks": 540,
+  "population_estimate": 338105.0,
+  "parameters": {
+    "graph_types": [
+      "drive",
+      "walk"
+    ],
+    "services": [
+      "school",
+      "kindergarten",
+      "polyclinic"
+    ],
+    "max_travel_min": 180,
+    "n_clusters": 11,
+    "random_state": 42,
+    "default_living_demand": 30,
+    "use_cache": true,
+    "redownload": false
+  },
+  "versions": {
+    "blocksnet": "1.0.0a9",
+    "iduedu": "0.4.1",
+    "osmnx": "2.1.1",
+    "geopandas": "1.2.0",
+    "pandas": "2.3.3",
+    "networkx": "3.7"
+  },
+  "graphs": {
+    "drive": {
+      "mode": "drive",
+      "nodes": 2828,
+      "edges": 2991
+    },
+    "walk": {
+      "mode": "walk",
+      "nodes": 16097,
+      "edges": 19814
+    }
+  },
+  "services": {
+    "school": {
+      "objects": 46,
+      "capacity": 11500.0
+    },
+    "kindergarten": {
+      "objects": 65,
+      "capacity": 5200.0
+    },
+    "polyclinic": {
+      "objects": 3,
+      "capacity": 150.0
+    }
+  }
+}
