@@ -1,0 +1,186 @@
+{
+  "baseline": {
+    "blocks": 540,
+    "demand": 40699.0,
+    "capacity": 10500,
+    "added_capacity": 0,
+    "within": 10500.0,
+    "deficit": 30199.0,
+    "deficit_reduction": 0.0,
+    "provision": 0.257992,
+    "provision_change": 0.0,
+    "blocks_improved": 0,
+    "blocks_with_deficit": 240
+  },
+  "scenarios": {
+    "A": {
+      "name": "А. Одна школа на 600 мест",
+      "description": "Ручной выбор: квартал 107 имеет наибольший собственный дефицит (1285 мест) и население 10 702 чел. при отсутствии существующих школ.",
+      "placements": [
+        {
+          "block_id": 107,
+          "capacity": 600
+        }
+      ],
+      "summary": {
+        "blocks": 540,
+        "demand": 40699.0,
+        "capacity": 11100,
+        "added_capacity": 600,
+        "within": 11100.0,
+        "deficit": 29599.0,
+        "deficit_reduction": 600.0,
+        "provision": 0.272734,
+        "provision_change": 0.014742,
+        "blocks_improved": 1,
+        "blocks_with_deficit": 240
+      },
+      "changed": [
+        {
+          "block_id": 107,
+          "population": 10702.0,
+          "baseline_capacity": 0,
+          "scenario_capacity": 600,
+          "added_capacity": 600,
+          "baseline_provision": 0.0,
+          "scenario_provision": 0.466926,
+          "provision_change": 0.466926,
+          "baseline_deficit": 1285.0,
+          "scenario_deficit": 685.0,
+          "deficit_reduction": 600.0,
+          "land_use": "industrial",
+          "morphotype": "individual residential"
+        }
+      ]
+    },
+    "B": {
+      "name": "Б. Две школы по 300 мест",
+      "description": "Ручной выбор: кварталы 107 и 17 — два наибольших дефицита; 600 мест распределены между двумя территориями.",
+      "placements": [
+        {
+          "block_id": 17,
+          "capacity": 300
+        },
+        {
+          "block_id": 107,
+          "capacity": 300
+        }
+      ],
+      "summary": {
+        "blocks": 540,
+        "demand": 40699.0,
+        "capacity": 11100,
+        "added_capacity": 600,
+        "within": 11100.0,
+        "deficit": 29599.0,
+        "deficit_reduction": 600.0,
+        "provision": 0.272734,
+        "provision_change": 0.014742,
+        "blocks_improved": 3,
+        "blocks_with_deficit": 240
+      },
+      "changed": [
+        {
+          "block_id": 107,
+          "population": 10702.0,
+          "baseline_capacity": 0,
+          "scenario_capacity": 300,
+          "added_capacity": 300,
+          "baseline_provision": 0.0,
+          "scenario_provision": 0.233463,
+          "provision_change": 0.233463,
+          "baseline_deficit": 1285.0,
+          "scenario_deficit": 985.0,
+          "deficit_reduction": 300.0,
+          "land_use": "industrial",
+          "morphotype": "individual residential"
+        },
+        {
+          "block_id": 233,
+          "population": 9487.0,
+          "baseline_capacity": 250,
+          "scenario_capacity": 250,
+          "added_capacity": 0,
+          "baseline_provision": 0.219491,
+          "scenario_provision": 0.438104,
+          "provision_change": 0.218613,
+          "baseline_deficit": 889.0,
+          "scenario_deficit": 640.0,
+          "deficit_reduction": 249.0,
+          "land_use": "residential",
+          "morphotype": "mid-rise"
+        },
+        {
+          "block_id": 17,
+          "population": 10188.0,
+          "baseline_capacity": 0,
+          "scenario_capacity": 300,
+          "added_capacity": 300,
+          "baseline_provision": 0.203598,
+          "scenario_provision": 0.245298,
+          "provision_change": 0.0417,
+          "baseline_deficit": 974.0,
+          "scenario_deficit": 923.0,
+          "deficit_reduction": 51.0,
+          "land_use": "industrial",
+          "morphotype": "low-rise model"
+        }
+      ]
+    },
+    "C": {
+      "name": "В. Авто-подбор одной школы на 600 мест",
+      "description": "Автоматический поиск: 347 кварталов дают одинаковое сокращение суммарного дефицита на 600 мест. Для сценария выбран квартал 2 с минимальным block_id как представитель группы лучших.",
+      "placements": [
+        {
+          "block_id": 2,
+          "capacity": 600
+        }
+      ],
+      "summary": {
+        "blocks": 540,
+        "demand": 40699.0,
+        "capacity": 11100,
+        "added_capacity": 600,
+        "within": 11100.0,
+        "deficit": 29599.0,
+        "deficit_reduction": 600.0,
+        "provision": 0.272734,
+        "provision_change": 0.014742,
+        "blocks_improved": 2,
+        "blocks_with_deficit": 239
+      },
+      "changed": [
+        {
+          "block_id": 436,
+          "population": 9260.0,
+          "baseline_capacity": 250,
+          "scenario_capacity": 250,
+          "added_capacity": 0,
+          "baseline_provision": 0.22482,
+          "scenario_provision": 0.731115,
+          "provision_change": 0.506295,
+          "baseline_deficit": 862.0,
+          "scenario_deficit": 299.0,
+          "deficit_reduction": 563.0,
+          "land_use": "residential",
+          "morphotype": "mid-rise"
+        },
+        {
+          "block_id": 2,
+          "population": 304.0,
+          "baseline_capacity": 0,
+          "scenario_capacity": 600,
+          "added_capacity": 600,
+          "baseline_provision": 0.0,
+          "scenario_provision": 1.0,
+          "provision_change": 1.0,
+          "baseline_deficit": 37.0,
+          "scenario_deficit": 0.0,
+          "deficit_reduction": 37.0,
+          "land_use": "industrial",
+          "morphotype": "low-rise model"
+        }
+      ]
+    }
+  }
+}

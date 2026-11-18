@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Размещение школ — Нижневартовск</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="{{ url_for('static', filename='vendor/leaflet/leaflet.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+<div id="loading" class="loading">Загрузка данных…</div>
+
+<header class="topbar">
+  <div class="title-block">
+    <h1>Размещение школ: Нижневартовск</h1>
+    <p>Оценка обеспеченности населения местами в общеобразовательных организациях по кварталам</p>
+  </div>
+  <div class="topbar-meta" id="topbar-meta"></div>
+</header>
+
+<main class="layout">
+  <aside class="sidebar">
+    <section class="card">
+      <div class="card-head">
+        <h2>Выбранный квартал</h2>
+        <span id="selected-badge" class="badge muted">не выбран</span>
+      </div>
+      <div id="selected-content" class="selected-content">
+        <p class="muted small">Нажмите на квартал на карте или строку в таблице.</p>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <h2>Ручной сценарий</h2>
+        <span class="badge" id="placements-count">0 школ</span>
+      </div>
+      <label class="field">
+        <span>Вместимость новой школы, мест</span>
+        <input id="manual-capacity" type="number" min="1" step="1" value="600" inputmode="numeric">
+      </label>
+      <button id="add-school" class="button secondary wide">Добавить школу в выбранный квартал</button>
+      <div id="placements-list" class="placements-list"></div>
+      <div class="button-row">
+        <button id="calculate-scenario" class="button primary">Рассчитать сценарий</button>
+        <button id="reset-scenario" class="button ghost">Сбросить</button>
+      </div>
+      <p id="manual-status" class="status-text">Сценарий не рассчитан.</p>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <h2>Автоматический подбор</h2>
+        <span class="badge" id="auto-best-count"></span>
+      </div>
+      <label class="field">
+        <span>Вместимость новой школы, мест</span>
+        <input id="auto-capacity" type="number" min="1" step="1" value="600" inputmode="numeric">
+      </label>
+      <button id="auto-start" class="button primary wide">Разместить автоматически</button>
+      <div id="auto-progress" class="progress hidden">
+        <div class="progress-track"><div id="auto-progress-bar" class="progress-bar"></div></div>
+        <p id="auto-progress-text" class="status-text"></p>
+        <button id="auto-cancel" class="button ghost small">Остановить</button>
+      </div>
+      <div id="auto-result" class="auto-result"></div>
+    </section>
+
+    <section class="card">
+      <div class="card-head"><h2>Эксперимент</h2></div>
+      <p class="muted small">Готовые сценарии практики: ручной выбор и результат автоподбора.</p>
+      <div id="experiment-buttons" class="experiment-buttons"></div>
+    </section>
+
+    <section class="card">
+      <div class="card-head"><h2>Сохранённые сценарии</h2></div>
+      <div class="save-row">
+        <input id="save-name" type="text" maxlength="80" placeholder="Название сценария">
+        <button id="save-scenario" class="button secondary">Сохранить</button>
+      </div>
+      <div id="saved-scenarios" class="saved-scenarios"></div>
+    </section>
+
+    <section class="card assumptions">
+      <h2>Данные и допущения</h2>
+      <p>Источник: OpenStreetMap, расчёт BlocksNet 1.0.0a9. Население и вместимость школ — расчётные оценки практики 2.</p>
+      <p>Граф: автомобильный. Порог доступности — 15 минут, норматив — 120 мест на 1000 жителей. Недостижимые пары в матрице заменены штрафом 180 минут.</p>
+      <p>Приложение сравнивает кварталы по модели обеспеченности. Выбор земельного участка и оценка возможности строительства требуют отдельного градостроительного обоснования.</p>
+    </section>
+  </aside>
+
+  <section class="content">
+    <div class="kpi-grid" id="kpis"></div>
+
+    <section class="map-card">
+      <div class="map-toolbar">
+        <div class="mode-buttons" id="mode-buttons">
+          <button data-mode="baseline" class="active">Исходное состояние</button>
+          <button data-mode="scenario">Сценарий</button>
+          <button data-mode="change">Изменение</button>
+        </div>
+        <div id="legend" class="legend"></div>
+      </div>
+      <div id="map"></div>
+    </section>
+
+    <section class="table-card">
+      <div class="table-toolbar">
+        <div>
+          <h2>Показатели по кварталам</h2>
+          <p class="muted small" id="table-subtitle">Исходное состояние</p>
+        </div>
+        <div class="table-actions">
+          <input id="table-search" type="search" placeholder="Поиск по номеру квартала">
+          <button id="export-csv" class="button secondary">Скачать CSV</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table" id="blocks-table">
+          <thead>
+            <tr>
+              <th data-sort="block_id">Квартал</th>
+              <th data-sort="population">Население, чел.</th>
+              <th data-sort="baseline_capacity">Вместимость исходная</th>
+              <th data-sort="scenario_capacity">Вместимость сценария</th>
+              <th data-sort="added_capacity">Δ вместимости</th>
+              <th data-sort="baseline_provision">Обеспеченность исходная</th>
+              <th data-sort="scenario_provision">Обеспеченность сценария</th>
+              <th data-sort="provision_change">Δ обеспеченности</th>
+              <th data-sort="baseline_deficit">Дефицит исходный</th>
+              <th data-sort="scenario_deficit">Дефицит сценария</th>
+              <th data-sort="deficit_reduction">Сокращение дефицита</th>
+            </tr>
+          </thead>
+          <tbody id="blocks-table-body"></tbody>
+        </table>
+      </div>
+      <div class="pagination" id="blocks-pagination"></div>
+    </section>
+
+    <section class="table-card" id="auto-table-card">
+      <div class="table-toolbar">
+        <div>
+          <h2>Все варианты автоматического подбора</h2>
+          <p class="muted small" id="auto-table-subtitle">Запустите подбор, чтобы увидеть все кварталы.</p>
+        </div>
+        <div class="table-actions">
+          <input id="auto-table-search" type="search" placeholder="Поиск по номеру квартала">
+        </div>
+      </div>
+      <div class="table-wrap auto-table-wrap">
+        <table class="data-table" id="auto-table">
+          <thead>
+            <tr>
+              <th data-sort="rank">#</th>
+              <th data-sort="block_id">Квартал</th>
+              <th data-sort="population">Население, чел.</th>
+              <th data-sort="baseline_capacity">Вместимость исходная</th>
+              <th data-sort="scenario_capacity">Вместимость сценария</th>
+              <th data-sort="deficit">Остаточный дефицит города</th>
+              <th data-sort="deficit_reduction">Сокращение дефицита</th>
+              <th data-sort="provision">Обеспеченность города</th>
+              <th data-sort="blocks_improved">Улучшено кварталов</th>
+              <th data-sort="blocks_with_deficit">Кварталов с дефицитом</th>
+              <th>Действия</th>
+            </tr>
+          </thead>
+          <tbody id="auto-table-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="table-card">
+      <div class="table-toolbar">
+        <div>
+          <h2>Сравнение сценариев</h2>
+          <p class="muted small">Исходное состояние и сохранённые сценарии.</p>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table" id="comparison-table">
+          <thead>
+            <tr>
+              <th>Сценарий</th>
+              <th>Размещения</th>
+              <th>Добавлено мест</th>
+              <th>Остаточный дефицит</th>
+              <th>Сокращение дефицита</th>
+              <th>Обеспеченность</th>
+              <th>Действия</th>
+            </tr>
+          </thead>
+          <tbody id="comparison-table-body"></tbody>
+        </table>
+      </div>
+    </section>
+  </section>
+</main>
+
+<div id="toast" class="toast hidden"></div>
+<script src="{{ url_for('static', filename='vendor/leaflet/leaflet.js') }}"></script>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
