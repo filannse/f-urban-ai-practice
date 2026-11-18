@@ -22,7 +22,7 @@ dependencies = [ # здесь необходимо вести все устан�
     "osmnx>=2.0.0",
     "pandas>=2.0",
     "pyarrow>=14.0",
-    "pyrosm>=0.29.0",
+    "pyrosm>=0.21.0",
     "shapely>=2.0",
 ]
 
