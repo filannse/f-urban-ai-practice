@@ -37,6 +37,10 @@
         <span class="badge" id="placements-count">0 школ</span>
       </div>
       <label class="field">
+        <span>Квартал для размещения</span>
+        <select id="manual-block"></select>
+      </label>
+      <label class="field">
         <span>Вместимость новой школы, мест</span>
         <input id="manual-capacity" type="number" min="1" step="1" value="600" inputmode="numeric">
       </label>
@@ -69,7 +73,7 @@
 
     <section class="card">
       <div class="card-head"><h2>Эксперимент</h2></div>
-      <p class="muted small">Готовые сценарии практики: ручной выбор и результат автоподбора.</p>
+      <p class="muted small">Готовые сценарии: одна школа на 600 мест, две школы по 300 мест и результат автоподбора.</p>
       <div id="experiment-buttons" class="experiment-buttons"></div>
     </section>
 
@@ -86,6 +90,7 @@
       <h2>Данные и допущения</h2>
       <p>Источник: OpenStreetMap, расчёт BlocksNet 1.0.0a9. Население и вместимость школ — расчётные оценки практики 2.</p>
       <p>Граф: автомобильный. Порог доступности — 15 минут, норматив — 120 мест на 1000 жителей. Недостижимые пары в матрице заменены штрафом 180 минут.</p>
+      <p>В интерфейсе показаны только жилые кварталы (<code>land_use = residential</code>), в которых разрешено размещать школы. Промышленные, рекреационные и прочие зоны участвуют в расчёте населения и обеспеченности, но не отображаются на карте, в таблице и в автоподборе.</p>
       <p>Приложение сравнивает кварталы по модели обеспеченности. Выбор земельного участка и оценка возможности строительства требуют отдельного градостроительного обоснования.</p>
     </section>
   </aside>
@@ -108,11 +113,11 @@
     <section class="table-card">
       <div class="table-toolbar">
         <div>
-          <h2>Показатели по кварталам</h2>
+          <h2>Показатели по жилым кварталам</h2>
           <p class="muted small" id="table-subtitle">Исходное состояние</p>
         </div>
         <div class="table-actions">
-          <input id="table-search" type="search" placeholder="Поиск по номеру квартала">
+          <input id="table-search" type="search" placeholder="Поиск по кварталу или морфотипу">
           <button id="export-csv" class="button secondary">Скачать CSV</button>
         </div>
       </div>
@@ -120,17 +125,14 @@
         <table class="data-table" id="blocks-table">
           <thead>
             <tr>
-              <th data-sort="block_id">Квартал</th>
-              <th data-sort="population">Население, чел.</th>
-              <th data-sort="baseline_capacity">Вместимость исходная</th>
-              <th data-sort="scenario_capacity">Вместимость сценария</th>
-              <th data-sort="added_capacity">Δ вместимости</th>
-              <th data-sort="baseline_provision">Обеспеченность исходная</th>
-              <th data-sort="scenario_provision">Обеспеченность сценария</th>
-              <th data-sort="provision_change">Δ обеспеченности</th>
-              <th data-sort="baseline_deficit">Дефицит исходный</th>
-              <th data-sort="scenario_deficit">Дефицит сценария</th>
-              <th data-sort="deficit_reduction">Сокращение дефицита</th>
+              <th data-sort="block_id" data-label="Квартал">Квартал</th>
+              <th data-sort="population" data-label="Население">Население, чел.</th>
+              <th data-sort="scenario_capacity" data-label="Вместимость">Вместимость, мест<br><span class="th-sub">исх. → сцен.</span></th>
+              <th data-sort="added_capacity" data-label="Δ вместимости">Δ вместимости</th>
+              <th data-sort="scenario_provision" data-label="Обеспеченность">Обеспеченность<br><span class="th-sub">исх. → сцен.</span></th>
+              <th data-sort="provision_change" data-label="Δ обеспеченности">Δ обеспеченности</th>
+              <th data-sort="scenario_deficit" data-label="Дефицит">Дефицит, мест<br><span class="th-sub">исх. → сцен.</span></th>
+              <th data-sort="deficit_reduction" data-label="Сокращение дефицита">Сокращение дефицита</th>
             </tr>
           </thead>
           <tbody id="blocks-table-body"></tbody>
@@ -143,7 +145,7 @@
       <div class="table-toolbar">
         <div>
           <h2>Все варианты автоматического подбора</h2>
-          <p class="muted small" id="auto-table-subtitle">Запустите подбор, чтобы увидеть все кварталы.</p>
+          <p class="muted small" id="auto-table-subtitle">Запустите подбор, чтобы увидеть все жилые кварталы.</p>
         </div>
         <div class="table-actions">
           <input id="auto-table-search" type="search" placeholder="Поиск по номеру квартала">

@@ -107,7 +107,7 @@ def auto_start():
             "status": "running",
             "capacity": capacity,
             "checked": 0,
-            "total": len(model.block_ids),
+            "total": len(model.residential_block_ids),
             "last_block_id": None,
             "started_at": _now(),
             "updated_at": _now(),
@@ -119,7 +119,9 @@ def auto_start():
         daemon=True,
         name=f"school-placement-auto-{job_id[:8]}",
     ).start()
-    return jsonify({"job_id": job_id, "total": len(model.block_ids), "capacity": capacity}), 202
+    return jsonify(
+        {"job_id": job_id, "total": len(model.residential_block_ids), "capacity": capacity}
+    ), 202
 
 
 @app.get("/api/auto/status/<job_id>")

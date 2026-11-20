@@ -20,6 +20,7 @@ LOCAL_MATRIX_PATH = Path(__file__).with_name("data") / "accessibility_matrix_dri
 MANIFEST_PATH = DATA_DIR / "manifest.json"
 SCENARIOS_PATH = Path(__file__).with_name("scenarios.json")
 TOLERANCE = 1e-6
+RESIDENTIAL_LAND_USE = "residential"
 
 logger.remove()
 
@@ -43,6 +44,10 @@ def _text(value: Any, default: str = "") -> str:
         return default
     text = str(value).strip()
     return text if text and text.lower() != "nan" else default
+
+
+def is_residential(value: Any) -> bool:
+    return _text(value).lower() == RESIDENTIAL_LAND_USE
 
 
 def parse_capacity(value: Any) -> int:
@@ -79,6 +84,9 @@ class SchoolPlacementModel:
         self.block_ids = gdf["block_id"].tolist()
         self.block_id_set = set(self.block_ids)
         self.block_meta = gdf.set_index("block_id")
+        self.residential_blocks = gdf[gdf["land_use"].map(is_residential)].reset_index(drop=True)
+        self.residential_block_ids = self.residential_blocks["block_id"].astype(int).tolist()
+        self.residential_block_id_set = set(self.residential_block_ids)
 
         self.matrix_path = MATRIX_PATH if MATRIX_PATH.exists() else LOCAL_MATRIX_PATH
         if not self.matrix_path.exists():
@@ -185,9 +193,13 @@ class SchoolPlacementModel:
             "blocks_with_deficit": int((result["demand_left"] > TOLERANCE).sum()),
         }
 
-    def _block_rows(self, result: pd.DataFrame) -> list[dict[str, Any]]:
+    def _block_rows(
+        self,
+        result: pd.DataFrame,
+        block_ids: list[int] | None = None,
+    ) -> list[dict[str, Any]]:
         rows = []
-        for block_id in self.block_ids:
+        for block_id in self.residential_block_ids if block_ids is None else block_ids:
             baseline = self.baseline.loc[block_id]
             scenario = result.loc[block_id]
             meta = self.block_meta.loc[block_id]
@@ -224,7 +236,7 @@ class SchoolPlacementModel:
 
     def _features(self) -> list[dict[str, Any]]:
         features = []
-        for _, row in self.blocks.iterrows():
+        for _, row in self.residential_blocks.iterrows():
             block_id = int(row["block_id"])
             baseline = self.baseline.loc[block_id]
             features.append(
@@ -259,6 +271,8 @@ class SchoolPlacementModel:
                 "accessibility_norm": self.accessibility_norm,
                 "max_travel_min": self.max_travel_min,
                 "block_count": len(self.block_ids),
+                "display_block_count": len(self.residential_block_ids),
+                "population_total": _finite_number(self.population.sum(), 1),
                 "baseline": self._summary(self.baseline),
                 "verification": self.verification,
                 "data_paths": {
@@ -283,7 +297,9 @@ class SchoolPlacementModel:
             block_id = parse_block_id(placement.get("block_id"))
             capacity = parse_capacity(placement.get("capacity"))
             if block_id not in self.block_id_set:
-                raise ValueError(f"Квартал {block_id} отсутствует в исходных данных")
+                raise ValueError(f"Квартал {block_id} отсутствует в расчётных данных города")
+            if block_id not in self.residential_block_id_set:
+                raise ValueError("Школы можно размещать только в жилых кварталах")
             added[block_id] = added.get(block_id, 0) + capacity
         result = self._run_capacity(pd.Series(added, dtype=int) if added else None)
         return {
@@ -304,20 +320,19 @@ class SchoolPlacementModel:
         capacity = parse_capacity(capacity)
         rows = []
         errors = []
-        total = len(self.block_ids)
-        for checked, block_id in enumerate(self.block_ids, start=1):
+        candidate_ids = self.residential_block_ids
+        total = len(candidate_ids)
+        for checked, block_id in enumerate(candidate_ids, start=1):
             if cancel is not None and cancel():
                 break
             try:
                 result = self._run_capacity(pd.Series({block_id: capacity}, dtype=int))
                 summary = self._summary(result)
+                meta = self.block_meta.loc[block_id]
                 rows.append(
                     {
                         "block_id": int(block_id),
-                        "population": _finite_number(
-                            self.block_meta.loc[block_id, "population"],
-                            1,
-                        ),
+                        "population": _finite_number(meta["population"], 1),
                         "baseline_capacity": int(self.block_meta.loc[block_id, "capacity_school"]),
                         "scenario_capacity": int(result.loc[block_id, "capacity"]),
                         "deficit": summary["deficit"],
@@ -332,7 +347,13 @@ class SchoolPlacementModel:
                 errors.append({"block_id": int(block_id), "error": str(exc)})
             if progress is not None:
                 progress(checked, total, int(block_id))
-        rows.sort(key=lambda row: (-row["deficit_reduction"], row["block_id"]))
+        rows.sort(
+            key=lambda row: (
+                -row["deficit_reduction"],
+                -(row["population"] or 0),
+                row["block_id"],
+            )
+        )
         if rows:
             best_reduction = rows[0]["deficit_reduction"]
             best = [
@@ -353,6 +374,7 @@ class SchoolPlacementModel:
             "rows": rows,
             "best": best,
             "best_reduction": best_reduction,
+            "recommended": rows[0]["block_id"] if rows else None,
         }
 
     def _load_scenarios(self) -> dict[str, Any]:

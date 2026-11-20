@@ -12,6 +12,7 @@ const el = {
   selectedBadge: $('selected-badge'),
   selectedContent: $('selected-content'),
   placementsCount: $('placements-count'),
+  manualBlock: $('manual-block'),
   manualCapacity: $('manual-capacity'),
   addSchool: $('add-school'),
   placementsList: $('placements-list'),
@@ -64,8 +65,8 @@ const state = {
   manualPlacements: [],
   selectedId: null,
   mode: 'baseline',
-  sortKey: 'block_id',
-  sortDir: 'asc',
+  sortKey: 'population',
+  sortDir: 'desc',
   page: 1,
   tableFilter: '',
   auto: null,
@@ -133,6 +134,10 @@ function signedNumber(value, digits = 0) {
   if (number === null) return '—';
   if (Math.abs(number) < 10 ** (-digits) / 2) return formatNumber(0, digits);
   return `${number > 0 ? '+' : '−'}${formatNumber(Math.abs(number), digits)}`;
+}
+
+function candidateCount() {
+  return Number(state.meta?.display_block_count) || Number(state.meta?.block_count) || 0;
 }
 
 function pluralSchools(count) {
@@ -209,7 +214,7 @@ function updateTopbar() {
   const verification = state.meta.verification || {};
   const verificationText = verification.ok ? 'baseline проверен' : 'baseline не проверен';
   el.topbarMeta.innerHTML = [
-    `${escapeHtml(state.meta.city)} · ${formatNumber(state.meta.block_count)} кварталов · ${verificationText}`,
+    `${escapeHtml(state.meta.city)} · ${formatNumber(state.meta.block_count)} кварталов · жилых для размещения: ${formatNumber(state.meta.display_block_count)} · ${verificationText}`,
     `${escapeHtml(state.meta.source)} · ${escapeHtml(state.meta.method)}`,
   ].join('<br>');
 }
@@ -219,9 +224,9 @@ function renderKpis() {
   const active = state.mode === 'baseline' ? baseline : currentSummary();
   const cards = [
     {
-      label: 'Кварталов',
+      label: 'Кварталов в расчёте',
       value: formatNumber(active.blocks),
-      sub: `с дефицитом: ${formatNumber(active.blocks_with_deficit)}`,
+      sub: `жилых для размещения: ${formatNumber(state.meta.display_block_count)}`,
       className: '',
     },
     {
@@ -276,7 +281,7 @@ function renderSelected() {
   if (!row) {
     el.selectedBadge.textContent = 'не выбран';
     el.selectedBadge.classList.add('muted');
-    el.selectedContent.innerHTML = '<p class="muted small">Нажмите на квартал на карте или строку в таблице.</p>';
+    el.selectedContent.innerHTML = '<p class="muted small">Выберите квартал для размещения в ручном сценарии, на карте или в таблице.</p>';
     return;
   }
   el.selectedBadge.textContent = `квартал ${row.block_id}`;
@@ -284,7 +289,7 @@ function renderSelected() {
   el.selectedContent.innerHTML = `
     <div class="selected-title">
       <h3>Квартал ${row.block_id}</h3>
-      <span class="land-use">${escapeHtml(row.land_use)}</span>
+      <span class="land-use" title="Тип использования: ${escapeHtml(row.land_use)}">жилой</span>
     </div>
     <div class="selected-grid">
       ${selectedStat('Население', `${formatNumber(row.population)} чел.`)}
@@ -312,13 +317,11 @@ function renderPlacements() {
   }
   const sorted = state.manualPlacements.slice().sort((a, b) => a.block_id - b.block_id);
   el.placementsList.innerHTML = sorted
-    .map(
-      (placement) => `
+    .map((placement) => `
       <div class="placement-item">
         <span>Квартал <strong>${placement.block_id}</strong> — ${formatNumber(placement.capacity)} мест</span>
         <button type="button" data-remove-block="${placement.block_id}" title="Удалить школу">×</button>
-      </div>`,
-    )
+      </div>`)
     .join('');
 }
 
@@ -350,13 +353,32 @@ function compareValues(left, right, direction) {
   return direction === 'asc' ? comparison : -comparison;
 }
 
+function populateBlockSelect(preferredId = state.selectedId) {
+  const rows = state.rows
+    .slice()
+    .sort((left, right) => (
+      (right.population ?? 0) - (left.population ?? 0) || left.block_id - right.block_id
+    ));
+  const options = ['<option value="">Выберите квартал</option>'];
+  for (const row of rows) {
+    options.push(
+      `<option value="${row.block_id}">Квартал ${row.block_id} · ${formatNumber(row.population)} чел. · дефицит ${formatNumber(row.baseline_deficit, 1)}</option>`,
+    );
+  }
+  el.manualBlock.innerHTML = options.join('');
+  const preferred = preferredId === null ? '' : String(preferredId);
+  el.manualBlock.value = rows.some((row) => String(row.block_id) === preferred) ? preferred : '';
+  el.addSchool.disabled = el.manualBlock.value === '';
+}
+
 function filteredBlockRows() {
   const filter = state.tableFilter.trim().toLowerCase();
   let rows = state.rows.filter((row) => {
     if (!filter) return true;
     return (
       String(row.block_id).includes(filter) ||
-      String(row.land_use).toLowerCase().includes(filter)
+      String(row.land_use).toLowerCase().includes(filter) ||
+      String(row.morphotype).toLowerCase().includes(filter)
     );
   });
   rows = rows.slice().sort((left, right) => compareValues(left[state.sortKey], right[state.sortKey], state.sortDir));
@@ -390,7 +412,7 @@ function renderTable() {
   const pageRows = rows.slice(start, end);
 
   if (!pageRows.length) {
-    el.blocksTableBody.innerHTML = '<tr><td colspan="11" class="muted">Ничего не найдено</td></tr>';
+    el.blocksTableBody.innerHTML = '<tr><td colspan="8" class="muted">Ничего не найдено. Измените поисковый запрос.</td></tr>';
   } else {
     el.blocksTableBody.innerHTML = pageRows
       .map((row) => {
@@ -403,14 +425,11 @@ function renderTable() {
           <tr data-block-id="${row.block_id}" class="${selectedClass}">
             <td>${row.block_id}</td>
             <td>${formatNumber(row.population)}</td>
-            <td>${formatNumber(row.baseline_capacity)}</td>
-            <td>${formatNumber(row.scenario_capacity)}</td>
+            <td>${formatNumber(row.baseline_capacity)} → ${formatNumber(row.scenario_capacity)}</td>
             <td class="${addedClass}">${signedNumber(row.added_capacity)}</td>
-            <td>${formatPercent(row.baseline_provision)}</td>
-            <td>${formatPercent(row.scenario_provision)}</td>
+            <td>${formatPercent(row.baseline_provision)} → ${formatPercent(row.scenario_provision)}</td>
             <td class="${changeClass}">${formatChange(row.provision_change)}</td>
-            <td>${formatNumber(row.baseline_deficit, 1)}</td>
-            <td class="${deficitClass}">${formatNumber(row.scenario_deficit, 1)}</td>
+            <td class="${deficitClass}">${formatNumber(row.baseline_deficit, 1)} → ${formatNumber(row.scenario_deficit, 1)}</td>
             <td class="${reductionClass}">${signedNumber(row.deficit_reduction, 1)}</td>
           </tr>`;
       })
@@ -420,9 +439,22 @@ function renderTable() {
   const label = state.scenario
     ? `Сценарий: ${state.scenarioLabel || 'текущий'}`
     : 'Исходное состояние';
-  const filterText = state.tableFilter.trim() ? ` · фильтр «${state.tableFilter.trim()}»` : '';
-  el.tableSubtitle.textContent = `${label}${filterText} · показано ${start + (pageRows.length ? 1 : 0)}–${end} из ${rows.length}`;
+  const filterText = state.tableFilter.trim() ? ` · поиск «${state.tableFilter.trim()}»` : '';
+  const sortHeader = el.blocksTable.querySelector(`th[data-sort="${state.sortKey}"]`);
+  const sortLabel = sortHeader
+    ? (sortHeader.dataset.label || sortHeader.textContent.replace(/\s+/g, ' ').trim())
+    : state.sortKey;
+  const sortText = `сортировка: ${sortLabel} ${state.sortDir === 'asc' ? '↑' : '↓'}`;
+  el.tableSubtitle.textContent = `${label} · только жилые кварталы${filterText} · ${sortText} · показано ${start + (pageRows.length ? 1 : 0)}–${end} из ${rows.length}`;
   el.blocksPagination.innerHTML = paginationHtml(start, end, rows.length, totalPages);
+  updateSortHeaders();
+}
+
+function updateSortHeaders() {
+  el.blocksTable.querySelectorAll('th[data-sort]').forEach((header) => {
+    header.classList.toggle('sort-asc', header.dataset.sort === state.sortKey && state.sortDir === 'asc');
+    header.classList.toggle('sort-desc', header.dataset.sort === state.sortKey && state.sortDir === 'desc');
+  });
 }
 
 function autoBestSet() {
@@ -449,13 +481,13 @@ function filteredAutoRows() {
 }
 
 function autoSubtitle() {
-  if (!state.auto) return 'Запустите подбор, чтобы увидеть все кварталы.';
+  if (!state.auto) return 'Запустите подбор, чтобы увидеть все жилые кварталы.';
   if (state.auto.status === 'running') {
-    return `Подбор выполняется: проверено ${formatNumber(state.auto.checked)} из ${formatNumber(state.auto.total)}.`;
+    return `Подбор выполняется: проверено ${formatNumber(state.auto.checked)} из ${formatNumber(state.auto.total)} жилых кварталов.`;
   }
   if (state.auto.status === 'error') return `Ошибка: ${state.auto.error || 'не удалось выполнить подбор'}`;
   const parts = [
-    `Проверено ${formatNumber(state.auto.checked)} из ${formatNumber(state.auto.total)}`,
+    `Проверено ${formatNumber(state.auto.checked)} из ${formatNumber(state.auto.total)} жилых кварталов`,
   ];
   if (state.auto.best_reduction !== null && state.auto.best_reduction !== undefined) {
     parts.push(`лучшее сокращение — ${formatNumber(state.auto.best_reduction)} мест`);
@@ -477,7 +509,7 @@ function renderAutoTable() {
   const rows = filteredAutoRows();
   if (!rows.length) {
     const message = !state.auto
-      ? 'Запустите автоматический подбор, чтобы увидеть все 540 вариантов.'
+      ? 'Запустите автоматический подбор, чтобы увидеть все жилые кварталы.'
       : state.auto.status === 'running'
         ? 'Подбор выполняется. Таблица заполнится после завершения.'
         : state.auto.status === 'error'
@@ -487,10 +519,16 @@ function renderAutoTable() {
     return;
   }
 
+  const recommendedId = Number(state.auto?.recommended ?? state.auto?.best?.[0]);
   el.autoTableBody.innerHTML = rows
     .map((row) => {
-      const bestClass = row.is_best ? 'best-row' : '';
-      const bestBadge = row.is_best ? ' <span class="badge">лучший</span>' : '';
+      const isRecommended = row.is_best && Number(row.block_id) === recommendedId;
+      const bestClass = isRecommended ? 'best-row' : '';
+      const bestBadge = isRecommended
+        ? ' <span class="badge">рекомендуемый</span>'
+        : row.is_best
+          ? ' <span class="badge muted">равнозначный</span>'
+          : '';
       return `
         <tr data-block-id="${row.block_id}" class="${bestClass}">
           <td>${row.rank}</td>
@@ -518,7 +556,7 @@ function renderAutoResult() {
   }
   if (auto.status === 'running') {
     el.autoBestCount.textContent = 'идёт';
-    el.autoResult.innerHTML = `<p class="status-text">Проверено ${formatNumber(auto.checked)} из ${formatNumber(auto.total)}…</p>`;
+    el.autoResult.innerHTML = `<p class="status-text">Проверено ${formatNumber(auto.checked)} из ${formatNumber(auto.total)} жилых кварталов…</p>`;
     return;
   }
   if (auto.status === 'error') {
@@ -528,7 +566,9 @@ function renderAutoResult() {
   }
 
   const best = auto.best || [];
-  el.autoBestCount.textContent = best.length ? `лучших: ${formatNumber(best.length)}` : '';
+  const recommended = Number(auto.recommended ?? best[0]);
+  const hasRecommended = Number.isFinite(recommended) && best.includes(recommended);
+  el.autoBestCount.textContent = best.length ? `равнозначных: ${formatNumber(best.length)}` : '';
   const errorsText = auto.errors?.length
     ? `<br><span class="status-text error">Ошибок: ${formatNumber(auto.errors.length)}. Показан частичный результат.</span>`
     : '';
@@ -536,20 +576,23 @@ function renderAutoResult() {
     ? '<br><span class="status-text error">Подбор остановлен; показаны завершённые варианты.</span>'
     : '';
   const bestChips = best
-    .map((blockId) => `<button type="button" class="best-chip" data-best-block="${blockId}" title="Применить квартал ${blockId}">${blockId}</button>`)
+    .map((blockId) => {
+      const recommendedClass = Number(blockId) === recommended ? ' recommended' : '';
+      return `<button type="button" class="best-chip${recommendedClass}" data-best-block="${blockId}" title="Применить квартал ${blockId}">${blockId}</button>`;
+    })
     .join('');
-  const bestButton = best.length
-    ? `<button type="button" class="button secondary wide" data-best-block="${best[0]}">Применить лучший квартал ${best[0]}</button>`
+  const bestButton = hasRecommended
+    ? `<button type="button" class="button secondary wide" data-best-block="${recommended}">Применить рекомендуемый квартал ${recommended}</button>`
     : '';
   el.autoResult.innerHTML = `
     <div class="auto-summary">
       <strong>Лучшее сокращение: ${formatNumber(auto.best_reduction)} мест.</strong><br>
-      Проверено ${formatNumber(auto.checked)} из ${formatNumber(auto.total)}.
+      Проверено ${formatNumber(auto.checked)} из ${formatNumber(auto.total)} жилых кварталов.
       Равнозначных лучших: ${formatNumber(best.length)}.${errorsText}${cancelledText}
-      <br><span class="muted">Критерий: суммарный дефицит после добавления одной школы.</span>
+      <br><span class="muted">Критерий: суммарный дефицит после добавления одной школы. На карту применяется один рекомендуемый участок; остальные равнозначные варианты показаны в таблице.</span>
     </div>
     ${best.length ? `<div class="best-list">${bestChips}</div>` : ''}
-    ${best.length ? '<p class="muted small">Нажмите номер квартала, чтобы применить его.</p>' : ''}
+    ${best.length ? '<p class="muted small">Нажмите номер квартала, чтобы применить только его.</p>' : ''}
     ${bestButton}
     <button type="button" class="button ghost wide" data-scroll-auto>Показать все варианты в таблице</button>
   `;
@@ -647,19 +690,37 @@ function renderSaved() {
     .join('');
 }
 
+function legendItem(color, label) {
+  return `<span class="legend-item"><i class="legend-swatch" style="background:${color}"></i>${label}</span>`;
+}
+
 function renderLegend() {
+  const schoolItem = state.scenario
+    ? '<span class="legend-item"><i class="legend-school"></i>новая школа</span>'
+    : '';
   if (state.mode === 'change') {
     el.legend.innerHTML = [
-      '<span class="legend-gradient" style="background:linear-gradient(90deg,#cfd8e3,#d9f0e3,#9dd9b5,#4caf7d,#15803d)"></span>',
-      '<span>0</span><span>≥ +30 п.п.</span>',
-      '<span class="legend-swatch" style="background:#c9d2dc"></span><span>нет изменений</span>',
+      '<span class="legend-title">Изменение в кварталах школ</span>',
+      legendItem('#cfd8e3', 'без изменений'),
+      legendItem('#e9a19a', 'снижение'),
+      legendItem('#d9f0e3', '< 5 п.п.'),
+      legendItem('#9dd9b5', '5–15 п.п.'),
+      legendItem('#4caf7d', '15–30 п.п.'),
+      legendItem('#15803d', '≥ 30 п.п.'),
+      schoolItem,
+      '<span class="legend-note">закрашены только кварталы с новыми школами</span>',
     ].join('');
     return;
   }
   el.legend.innerHTML = [
-    '<span class="legend-gradient" style="background:linear-gradient(90deg,#b42318,#d97706,#eab308,#65a30d,#15803d)"></span>',
-    '<span>0%</span><span>100%</span>',
-    '<span class="legend-swatch" style="background:#c9d2dc"></span><span>нет спроса</span>',
+    '<span class="legend-title">Обеспеченность школами</span>',
+    legendItem('#b42318', '0–15%'),
+    legendItem('#d97706', '15–35%'),
+    legendItem('#eab308', '35–60%'),
+    legendItem('#65a30d', '60–85%'),
+    legendItem('#15803d', '85–100%'),
+    legendItem('#c9d2dc', 'нет спроса'),
+    schoolItem,
   ].join('');
 }
 
@@ -677,6 +738,14 @@ function styleForFeature(feature) {
   const row = state.rowsById.get(blockId);
   if (!row) {
     return { color: '#ffffff', weight: 0.6, fillColor: '#c9d2dc', fillOpacity: 0.7 };
+  }
+  if (state.mode === 'change' && !(row.added_capacity > 0)) {
+    return {
+      color: '#d8e0e8',
+      weight: 0.4,
+      fillColor: '#eef2f6',
+      fillOpacity: 0.08,
+    };
   }
   let color;
   if (state.mode === 'change') {
@@ -706,13 +775,16 @@ function tooltipHtml(blockId) {
   if (!row) return `Квартал ${blockId}`;
   const lines = [
     `<strong>Квартал ${blockId}</strong>`,
+    'Жилой квартал для размещения',
     `Население: ${formatNumber(row.population)} чел.`,
   ];
   if (state.scenario) {
     lines.push(`Исходно: ${formatPercent(row.baseline_provision)} · дефицит ${formatNumber(row.baseline_deficit, 1)}`);
     lines.push(`Сценарий: ${formatPercent(row.scenario_provision)} · дефицит ${formatNumber(row.scenario_deficit, 1)}`);
     if (row.added_capacity > 0) {
-      lines.push(`Новая вместимость: +${formatNumber(row.added_capacity)} мест`);
+      lines.push(`Новая школа: +${formatNumber(row.added_capacity)} мест`);
+    } else if ((row.provision_change ?? 0) > 0) {
+      lines.push(`Влияние соседней школы: ${formatChange(row.provision_change)}`);
     }
   } else {
     lines.push(`Обеспеченность: ${formatPercent(row.baseline_provision)}`);
@@ -799,8 +871,10 @@ function pageForBlock(blockId) {
 }
 
 function selectBlock(blockId, { fromMap = false, focusTable = false } = {}) {
-  if (!state.rowsById.has(blockId)) return;
+  const row = state.rowsById.get(blockId);
+  if (!row) return;
   state.selectedId = blockId;
+  populateBlockSelect(blockId);
   if (focusTable) {
     const page = pageForBlock(blockId);
     if (page !== null) state.page = page;
@@ -808,7 +882,7 @@ function selectBlock(blockId, { fromMap = false, focusTable = false } = {}) {
   renderSelected();
   renderPlacements();
   renderTable();
-  updateSelectionLayer();
+  refreshMap();
   if (fromMap) {
     const layer = state.layersById.get(blockId);
     if (layer) layer.openTooltip();
@@ -968,9 +1042,14 @@ function resetScenario() {
   state.scenario = null;
   state.scenarioLabel = '';
   state.mode = 'baseline';
+  state.selectedId = null;
+  state.tableFilter = '';
+  state.page = 1;
   el.manualCapacity.value = '600';
+  el.tableSearch.value = '';
   el.saveName.value = '';
   resetRows();
+  populateBlockSelect();
   updateModeButtons();
   renderAll();
   setManualStatus('Сценарий не рассчитан.');
@@ -978,14 +1057,14 @@ function resetScenario() {
 }
 
 function updateAutoProgress(job) {
-  const total = Number(job.total) || state.meta.block_count;
+  const total = Number(job.total) || candidateCount();
   const checked = Number(job.checked) || 0;
   const percent = total ? Math.min(100, Math.round((checked / total) * 100)) : 0;
   el.autoProgressBar.style.width = `${percent}%`;
   const suffix = job.last_block_id === null || job.last_block_id === undefined
     ? ''
     : `; последний квартал ${job.last_block_id}`;
-  el.autoProgressText.textContent = `Проверено ${formatNumber(checked)} из ${formatNumber(total)}${suffix}`;
+  el.autoProgressText.textContent = `Проверено ${formatNumber(checked)} из ${formatNumber(total)} жилых кварталов${suffix}`;
 }
 
 function setAutoBusy(running) {
@@ -1007,7 +1086,7 @@ function finishAutoError(message) {
     status: 'error',
     error: message,
     checked: state.auto?.checked || 0,
-    total: state.auto?.total || state.meta.block_count,
+    total: state.auto?.total || candidateCount(),
     best: [],
     errors: [],
   };
@@ -1068,7 +1147,7 @@ async function startAuto() {
     status: 'running',
     capacity,
     checked: 0,
-    total: state.meta.block_count,
+    total: candidateCount(),
     best: [],
     errors: [],
   };
@@ -1076,7 +1155,7 @@ async function startAuto() {
   el.autoProgress.classList.remove('hidden');
   el.autoProgressBar.style.width = '0%';
   el.autoProgressText.className = 'status-text';
-  el.autoProgressText.textContent = `Проверено 0 из ${formatNumber(state.meta.block_count)}…`;
+  el.autoProgressText.textContent = `Проверено 0 из ${formatNumber(candidateCount())} жилых кварталов…`;
   renderAutoResult();
   renderAutoTable();
   try {
@@ -1338,6 +1417,19 @@ function bindEvents() {
     removePlacement(Number(button.dataset.removeBlock));
   });
 
+  el.manualBlock.addEventListener('change', (event) => {
+    const blockId = Number(event.target.value);
+    if (!event.target.value || !Number.isFinite(blockId)) {
+      state.selectedId = null;
+      renderSelected();
+      renderPlacements();
+      renderTable();
+      updateSelectionLayer();
+      return;
+    }
+    selectBlock(blockId, { focusTable: true });
+  });
+
   el.tableSearch.addEventListener('input', (event) => {
     state.tableFilter = event.target.value;
     state.page = 1;
@@ -1365,6 +1457,7 @@ function bindEvents() {
       state.sortKey = key;
       state.sortDir = 'asc';
     }
+    state.page = 1;
     renderTable();
   });
 
@@ -1455,11 +1548,13 @@ async function init() {
       .map((feature) => ({ ...feature.properties }))
       .sort((left, right) => Number(left.block_id) - Number(right.block_id));
     state.baselineById = new Map(state.baselineRows.map((row) => [Number(row.block_id), row]));
-    state.populationTotal = state.baselineRows.reduce((sum, row) => sum + (numOrNull(row.population) ?? 0), 0);
+    state.populationTotal = numOrNull(payload.meta.population_total)
+      ?? state.baselineRows.reduce((sum, row) => sum + (numOrNull(row.population) ?? 0), 0);
     state.scenarios = payload.scenarios || {};
     state.saved = loadSavedScenarios();
     state.rows = state.baselineRows.map((row) => baselineRow(row));
     reindexRows();
+    populateBlockSelect();
 
     initMap();
     bindEvents();
